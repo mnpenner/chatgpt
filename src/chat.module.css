@@ -8,7 +8,8 @@
 
     .indent {
         margin: 0 auto;
-        max-width: 1000px;
+        max-width: 1040px;
+        padding: 0 20px;
     }
 
     .top-bar {
@@ -23,11 +24,43 @@
     .chat-bar {
         display: flex;
         align-items: center;
+        gap: 4px;
     }
 
     .chat-stack {
         display: flex;
         flex-direction: column;
         height: 100%;
+    }
+
+    .flex1 {
+        flex: 1;
+    }
+
+    .input {
+        width: 100%;
+        outline: none;
+        background-color: #454545;
+        border: 1px solid #262626;
+        border-radius: 5px;
+        padding: .25em .5em;
+        color: var(--color-fg);
+
+        &:focus {
+            outline: 2px solid #2463EB;
+        }
+    }
+
+    .image-button {
+        background-size: auto 26px;
+        height: 32px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        display: block;
+        aspect-ratio: 1;
+        outline: none;
     }
 }
