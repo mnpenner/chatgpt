@@ -1,0 +1,20 @@
+@layer normalize, base, module;
+
+@layer base {
+    :root {
+        --color-bg: #202020;
+        --color-fg: #fff;
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            --color-bg: #fff;
+            --color-fg: #111;
+        }
+    }
+
+    body {
+        background-color: var(--color-bg);
+        color: var(--color-fg);
+    }
+}

@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {withClass} from './with-class.tsx'
+import css from './chat.module.css'
+
+const Page = withClass('div', css.page)
+const Indent = withClass('div', css.indent)
+const TopBar = withClass('div', css.topBar)
+const BottomBar = withClass('div', css.bottomBar)
+const ChatStack = withClass('div', css.chatStack)
+const ChatBar = withClass('div', css.chatBar)
 
 function App() {
-  const [count, setCount] = useState(0)
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR cool
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    return (
+        <Page>
+            <ChatStack>
+                <TopBar>
+                    <Indent>
+                        yoyoyo
+                    </Indent>
+                </TopBar>
+                <BottomBar>
+                    <Indent>
+                        <ChatBar>
+                            <input/>
+                            <button>Send</button>
+                        </ChatBar>
+                    </Indent>
+                </BottomBar>
+            </ChatStack>
+        </Page>
+    )
 }
 
 export default App

@@ -1,0 +1,33 @@
+@layer module {
+
+    .page {
+        background: #0B141A url(assets/circuit-board.svg);
+        position: fixed;
+        inset: 0;
+    }
+
+    .indent {
+        margin: 0 auto;
+        max-width: 1000px;
+    }
+
+    .top-bar {
+        flex: 1;
+    }
+
+    .bottom-bar {
+        background-color: #2C2C2C;
+        border-top: 1px solid #262626;
+    }
+
+    .chat-bar {
+        display: flex;
+        align-items: center;
+    }
+
+    .chat-stack {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+}
