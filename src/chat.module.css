@@ -1,4 +1,4 @@
-@layer module {
+/*@layer module {*/
 
     .page {
         background: #0B141A url(assets/circuit-board.svg);
@@ -37,6 +37,34 @@
         flex: 1;
     }
 
+    .chat-list {
+        display: flex;
+        gap: 5px;
+        flex-direction: column;
+        list-style: none;
+        margin: 0;
+        padding: 10px 0;
+    }
+
+    .chat-bubble {
+        padding: .25em .5em;
+        border-radius: 5px;
+        /*font-family: ${openSansFont.style.fontFamily}, sans-serif;*/
+        line-height: 1.45;
+        color: rgba(255, 255, 255, .9);
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+
+        &.user {
+            background-color: rgba(1, 91, 75, 0.9);
+            margin-right: 20px;
+        }
+
+        &.assistant {
+            background-color: rgba(31, 44, 51, 0.9);
+            margin-left: 20px;
+        }
+    }
+
     .input {
         width: 100%;
         outline: none;
@@ -62,4 +90,5 @@
         aspect-ratio: 1;
         outline: none;
     }
-}
+/*}*/
+

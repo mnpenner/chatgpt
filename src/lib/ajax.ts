@@ -1,6 +1,6 @@
 import {CommonHeaders, ContentTypes} from './enums'
 import {nil} from './util-types'
-import {EMPTY_OBJECT} from './shared-constants'
+import {EMPTY_OBJECT} from './constants.ts'
 
 interface RequestInitUrl extends RequestInit {
     url: string

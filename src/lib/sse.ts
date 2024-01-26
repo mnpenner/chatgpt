@@ -2,8 +2,17 @@
 
 
 import {JsonResponse, jsonStringify} from './json'
-import {SSE_LINE_SEP, SSE_PACKET_SEP} from './shared-constants'
 import {CommonHeaders, ContentTypes} from './enums'
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
+export const SSE_PACKET_SEP = '\n\n'
+export const SSE_LINE_SEP = '\n'
+export const SSE_DONE = 'done'
+export const SSE_DATA_PREFIX = 'data: ';
+export const SSE_EVENT_PREFIX = 'event: ';
+export const SSE_ID_PREFIX = 'id: ';
+export const SSE_RETRY_PREFIX = 'retry: ';
+
 
 interface SseOptions {
     url: string

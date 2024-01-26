@@ -1,11 +1,10 @@
-import {Resolvable, resolveValue} from './resolvable'
 import {useSyncExternalStoreWithSelector} from 'use-sync-external-store/shim/with-selector'
-import {useSyncExternalStore} from 'use-sync-external-store/shim'
 import {ExternalStore} from './external-store'
 import {identity} from './misc'
-import React, {useMemo} from 'react'
-import {isPlainObject} from '@mpen/is-type'
-import {AnyFn, Fn} from './util-types.ts'
+import React from 'react'
+import {AnyFn, AnyObject} from '../types/util-types.ts'
+import {Resolvable} from './resolvable.ts'
+import {fpShallowMerge} from './fp.ts'
 
 
 interface SubscribeOptions<TState, TValue> {
@@ -25,9 +24,8 @@ export function createGlobalState<TState>(initialState: TState) {
     function useState(): TState;
     function useState<TValue>(selector: Selector<TState, TValue>): TValue;
     function useState<TValue>(selector?: Selector<TState, TValue>) {
-        const select = selector ?? identity as AnyFn
         // useDebugValue(store.getSnapshot(), snapshot => select(snapshot))
-        return useSyncExternalStoreWithSelector<TState, TValue>(store.subscribe, store.getSnapshot, store.getSnapshot, select, Object.is)
+        return useSyncExternalStoreWithSelector<TState, TValue>(store.subscribe, store.getSnapshot, store.getSnapshot, selector ?? identity as Selector<TState, TValue>, Object.is)
     }
 
     /**
@@ -38,7 +36,7 @@ export function createGlobalState<TState>(initialState: TState) {
      */
     function subscribe<TValue = TState>(listener: (value: TValue) => void, options?: SubscribeOptions<TState, TValue>) {
         let lastValue = Symbol() as TValue
-        const select = options?.selector ?? identity as (state: TState) => TValue
+        const select = options?.selector ?? identity as Selector<TState, TValue>
         const isEqual = options?.isEqual ?? Object.is
         if(options?.fireImmediately) {
             listener(lastValue = select(store.getSnapshot()))
@@ -63,6 +61,12 @@ export function createGlobalState<TState>(initialState: TState) {
         // changes. -- although this is more of a convenience anyway, it can easily be combined with useState.
         return React.useEffect(() => store.subscribe(listener), [])
     }
+
+    // function merge(value: {
+    //     [K in keyof TState]?: Resolvable<TState[K], [TState[K], K]>;
+    // }) {
+    //     store.setState(fpShallowMerge(value) as any)
+    // }
 
     return {
         useState,
