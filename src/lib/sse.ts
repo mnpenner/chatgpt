@@ -1,7 +1,7 @@
 // https://github.com/mpetazzoni/sse.js/blob/main/lib/sse.js
 
 
-import {JsonResponse, jsonStringify} from './json'
+import {JsonResponse, JsonSerializable, jsonStringify} from './json'
 import {CommonHeaders, ContentTypes} from './enums'
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
@@ -16,7 +16,7 @@ export const SSE_RETRY_PREFIX = 'retry: ';
 
 interface SseOptions {
     url: string
-    body: any
+    body: JsonSerializable
     bearerToken?: string
     onMessage: (message: ServerSentEvent) => void
     onSuccess?: () => void
