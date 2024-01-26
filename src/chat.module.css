@@ -52,14 +52,13 @@
     }
 
     .image-button {
-        background-size: auto 26px;
         height: 32px;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-color: transparent;
         border: none;
         cursor: pointer;
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: clip;
         aspect-ratio: 1;
         outline: none;
     }

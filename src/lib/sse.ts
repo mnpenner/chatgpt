@@ -39,7 +39,7 @@ type ServerSentEvent = {
 }
 
 
-export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onAbort,onFinish,onStart,onTimeout}: SseOptions) {
+export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onAbort,onFinish,onTimeout}: SseOptions) {
     const xhr = new XMLHttpRequest()
     let progress = 0
     let unparsed = ''
@@ -58,7 +58,7 @@ export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onA
                 if(field === 'data') {
                     message[field] = JSON.parse(payload)
                 } else {
-                    message[field] = payload
+                    (message as any)[field] = payload
                 }
             }
             onMessage(message)

@@ -1,6 +1,5 @@
 import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
-import sendButton from './assets/send.svg'
 
 const Page = withClass('div', css.page)
 const Indent = withClass('div', css.indent)
@@ -10,7 +9,6 @@ const ChatStack = withClass('div', css.chatStack)
 const ChatBar = withClass('div', css.chatBar)
 
 function App() {
-
     return (
         <Page>
             <ChatStack>
@@ -25,7 +23,7 @@ function App() {
                             <div className={css.flex1}>
                                 <input className={css.input}/>
                             </div>
-                            <button className={css.imageButton} style={{backgroundImage:`url(${sendButton})`}}/>
+                            <button className={css.imageButton}>Send</button>
                         </ChatBar>
                     </Indent>
                 </BottomBar>
