@@ -1,4 +1,4 @@
-import {Resolvable, resolveValue} from './resolvable'
+import {Resolvable, Next, resolveValue} from './resolvable'
 
 export type StoreListener<T> = (value: T) => void
 
@@ -20,7 +20,7 @@ export class ExternalStore<T> {
         }
     }
 
-    setState = (state: Resolvable<T, [T]>) => {
+    setState = (state: Next<T>) => {
         const newState = resolveValue(state, this.#value)
         if(!Object.is(this.#value, newState)) {
             this.#value = newState

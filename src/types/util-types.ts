@@ -22,3 +22,7 @@ type _StrictUnionHelper<T, TAll> =
 
 // See also: https://github.com/ts-essentials/ts-essentials#xor
 export type XOR<T> = _StrictUnionHelper<T, T>
+
+
+export type Override<Base, Extension, DeleteKeys extends PropertyKey=never> = Omit<Base, keyof Extension|DeleteKeys> & Extension
+export type OverrideProps<Base extends import('react').ElementType, Extension, DeleteKeys extends PropertyKey = never> = Override<import('react').ComponentPropsWithoutRef<Base>, Extension, DeleteKeys>

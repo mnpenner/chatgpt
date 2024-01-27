@@ -51,10 +51,4 @@
             background-color: #f9f9f9;
         }
     }
-
-    body {
-        background-color: var(--color-bg);
-        color: var(--color-fg);
-        font-family: system-ui, sans-serif;
-    }
 }

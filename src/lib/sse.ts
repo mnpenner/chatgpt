@@ -36,7 +36,7 @@ type ServerSentEvent = {
     /**
      * The data field for the message. When the EventSource receives multiple consecutive lines that begin with data:, it concatenates them, inserting a newline character between each one. Trailing newlines are removed.
      */
-    data: JsonResponse
+    data: any
     /**
      * The event ID to set the EventSource object's last event ID value.
      */
@@ -65,6 +65,7 @@ export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onA
                 if(payload === undefined) throw new Error("Missing payload")
 
                 if(field === 'data') {
+                    if(payload === '[DONE]') return  // Hack for OpenAI.
                     message[field] = JSON.parse(payload)
                 } else {
                     (message as any)[field] = payload

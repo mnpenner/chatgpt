@@ -4,10 +4,11 @@
     background: #0B141A url(assets/circuit-board.svg);
     position: fixed;
     inset: 0;
+    display: flex;
 }
 
 .indent {
-    --gutter: 2rem;
+    --gutter: 1rem;
     width: min(960px, 100% - 2 * var(--gutter));
     margin-inline: auto;
 }
@@ -28,6 +29,7 @@
 }
 
 .chat-stack {
+    flex: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -37,6 +39,12 @@
     flex: 1;
 }
 
+.sidebar {
+    width: 300px;
+    padding: 10px;
+    background-color: #2C2C2C;
+}
+
 .chat-list {
     display: flex;
     gap: 5px;
@@ -44,6 +52,13 @@
     list-style: none;
     margin: 0;
     padding: 10px 0;
+}
+
+.api-key-input {
+    /*https://stackoverflow.com/a/58912170/65387*/
+    text-security:disc;
+    -webkit-text-security:disc;
+    -mox-text-security:disc;
 }
 
 .chat-bubble {
