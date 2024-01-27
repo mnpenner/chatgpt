@@ -6,6 +6,7 @@ import {fpMapSet} from '@mpen/imut-utils'
 import {uniqId} from './lib/misc.ts'
 import {mapMap} from './lib/collection.ts'
 import useEvent from './hooks/useEvent.ts'
+import SendIcon from './assets/send.svg?react'
 
 
 const Page = withClass('div', css.page)
@@ -59,7 +60,9 @@ function BottomForm() {
             <div className={css.flex1}>
                 <input className={css.input} {...register("message", {required: true})} />
             </div>
-            <button type="submit" className={css.imageButton}>Send</button>
+            <button type="submit" className={css.imageButton}>
+                <SendIcon/>
+            </button>
         </form>
     )
 }

@@ -1,5 +1,5 @@
 import {useSyncExternalStoreWithSelector} from 'use-sync-external-store/shim/with-selector'
-import {ExternalStore} from './external-store'
+import {ExternalStore} from './external-store.ts'
 import {identity} from './misc'
 import React from 'react'
 import {AnyFn, AnyObject} from '../types/util-types.ts'
