@@ -8,9 +8,10 @@ type ModelOptions = {
 
 const KEY = '5ddf1280-ee98-42ad-bcb0-cf01a8d4bd79'
 
-export const ModelState = createGlobalState<ModelOptions>(localStorageGetJson(KEY) ?? {
+export const ModelState = createGlobalState<ModelOptions>({
     model: '',
     apiKey: '',
+    ...localStorageGetJson(KEY),
 })
 
 

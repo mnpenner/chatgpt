@@ -13,6 +13,8 @@
     * {
         /* fix flex-box */
         min-width: 0;
+        /* fix overflowing <select>s */
+        max-width: 100%;
     }
 
     :root {
@@ -31,6 +33,25 @@
 
         --p-margin: 1em;
         --code-bg-color: #1E1E1E;
+    }
+
+    code, kbd, samp {
+        font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    }
+
+    td, th {
+        &:not(:last-child) {
+            padding-right: .5em;
+        }
+        &:not(:first-child) {
+            padding-left: .5em;
+        }
+    }
+
+    @scope (tbody) to (table) {
+        th {
+            text-align: left;
+        }
     }
 
     a {

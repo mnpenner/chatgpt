@@ -50,7 +50,7 @@ const markdownComponents: Components = {
     // p({node, children, ...props}) {
     //     return <p>{children}</p>
     // },
-    code({children, className, node, ...rest}) {
+    code({children, className, node, ref, ...rest}) {
 
         // console.log(node,inline,className,props)
         // if(inline) {

@@ -15,6 +15,9 @@ import {postSSE} from './lib/sse.ts'
 import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
 import {useState} from 'react'
 import {Markdown} from './markdown.tsx'
+import type {TiktokenModel} from "js-tiktoken"
+import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
+
 
 
 const Page = withClass('div', css.page)
@@ -62,12 +65,14 @@ function BottomForm() {
         ]
 
         const responseId = uniqId()
+        const model = ModelState.getSnapshot().model
+        const Tiktoken = import('js-tiktoken')
 
         postSSE({
             url: COMPLETIONS_ENDPOINT,
             bearerToken: ModelState.getSnapshot().apiKey,
             body: {
-                model: ModelState.getSnapshot().model,
+                model: model,
                 messages: sendMessages,
                 stream: true,
                 top_p: 0.1,
@@ -86,9 +91,12 @@ function BottomForm() {
                         content: firstChoice.delta.content,
                     })))
             },
-            // onFinish: () => {
-            //     console.log('fnish')
-            // }
+            onFinish: async () => {
+                const {encodingForModel} = await Tiktoken
+                const encoder = encodingForModel(model as TiktokenModel)
+                const fullMessage = ChatState.getSnapshot().responses.get(responseId)!
+                console.log(encoder.encode(fullMessage.content))
+            }
         })
 
         ChatState.setState(currentState => {
@@ -134,6 +142,25 @@ function ChatContents() {
     )
 }
 
+function formatPrice(value: number): string {
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4,
+    });
+
+    return formatter.format(value);
+}
+
+function formatNumber(value: number): string {
+    const formatter = new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 4,
+    });
+
+    return formatter.format(value);
+}
+
 function SideBarContents() {
     const state = ModelState.useState()
 
@@ -164,25 +191,41 @@ function SideBarContents() {
             <div>
                 <label>
                     <span>Model</span>
-                    <Select options={[
-                        // https://platform.openai.com/docs/models/overview
-                        {text: "gpt-4-0125-preview", value: 'gpt-4-0125-preview'},
-                        {text: "gpt-4-turbo-preview", value: 'gpt-4-turbo-preview'},
-                        {text: "gpt-4-1106-preview", value: 'gpt-4-1106-preview'},
-                        {text: "gpt-4-vision-preview", value: 'gpt-4-vision-preview'},
-                        {text: "gpt-4", value: 'gpt-4'},
-                        {text: "gpt-4-0613", value: 'gpt-4-0613'},
-                        {text: "gpt-4-32k", value: 'gpt-4-32k'},
-                        {text: "gpt-4-32k-0613", value: 'gpt-4-32k-0613'},
-                        {text: "---", value: '', disabled: true},
-                        {text: "gpt-3.5-turbo-1106", value: 'gpt-3.5-turbo-1106'},
-                        {text: "gpt-3.5-turbo", value: 'gpt-3.5-turbo'},
-                        {text: "gpt-3.5-turbo-16k", value: 'gpt-3.5-turbo-16k'},
-                        {text: "gpt-3.5-turbo-instruct", value: 'gpt-3.5-turbo-instruct'},
-                    ]} value={state.model} onChange={modelChange} />
+                    <Select options={MODEL_OPTIONS} value={state.model} onChange={modelChange} />
                 </label>
+                {state.model ? <ModelInfoTable model={state.model}/> : null}
             </div>
         </SideBar>
+    )
+}
+
+type ModelInfoTableProps = {model: OpenAiModelId}
+function ModelInfoTable({model}: ModelInfoTableProps) {
+    const info = getModelInfo(model)
+    if(!info) return null
+    const aliasOf = OPENAI_MODEL_ALIASES[model]
+    return (
+        <table>
+            <tbody>
+                {aliasOf ? <tr>
+                    <th>Alias Of</th>
+                    <td><code>{aliasOf}</code></td>
+                </tr> : null}
+                <tr>
+                    <th>Input</th>
+                    <td>{formatPrice(info.input)} / 1k tokens</td>
+                </tr>
+                <tr>
+                    <th>Output</th>
+                    <td>{formatPrice(info.output)} / 1k tokens</td>
+                </tr>
+                {info.contextWindow ? <tr>
+                    <th>Context</th>
+                    <td>{formatNumber(info.contextWindow)}</td>
+                </tr> : null}
+
+            </tbody>
+        </table>
     )
 }
 
