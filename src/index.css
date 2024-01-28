@@ -28,15 +28,32 @@
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+
+        --p-margin: 1em;
+        --code-bg-color: #1E1E1E;
     }
 
     a {
         font-weight: 500;
         color: #646cff;
         text-decoration: inherit;
+        cursor: pointer;
+        &:hover {
+            color: #535bf2;
+        }
     }
-    a:hover {
-        color: #535bf2;
+
+    p {
+        &:not(:first-child) {
+            margin-top: var(--p-margin);
+        }
+        &:not(:last-child) {
+            margin-bottom: var(--p-margin);
+        }
+    }
+
+    button {
+        cursor: pointer;
     }
 
     @media (prefers-color-scheme: light) {

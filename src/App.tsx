@@ -14,6 +14,7 @@ import {logJson} from './lib/debug.ts'
 import {postSSE} from './lib/sse.ts'
 import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
 import {useState} from 'react'
+import {Markdown} from './markdown.tsx'
 
 
 const Page = withClass('div', css.page)
@@ -34,8 +35,13 @@ function MessageList() {
 
     return (
         <ol className={css.chatList}>
-            {mapMap(messages, (res, key) => <ChatBubble className={res.role === 'user' ? css.user : css.assistant}
-                key={key}>{res.role}: {res.content}</ChatBubble>)}
+            {mapMap(messages, (res, key) => (
+                <ChatBubble className={res.role === 'user' ? css.user : css.assistant}
+                    key={key}>
+                    <div>{res.role}</div>
+                    <Markdown>{res.content}</Markdown>
+                </ChatBubble>
+            ))}
         </ol>
     )
 }
@@ -51,6 +57,7 @@ function BottomForm() {
         reset()
 
         const sendMessages: Message[] = [
+            {role: 'system', content: "Respond using GitHub Flavored Markdown syntax where appropriate."},
             {role: 'user', content: data.message},
         ]
 
@@ -138,8 +145,6 @@ function SideBarContents() {
         ModelState.set('model', ev.value)
     })
 
-    // Maybe do an accordion menu with "Chats" and "Assistants"
-
     return (
         <SideBar>
             <div>
@@ -149,7 +154,7 @@ function SideBarContents() {
             <div>
                 <label>
                     <span>API Key</span>
-                    <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput}/>
+                    <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
                 </label>
                 <div>
                     <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
