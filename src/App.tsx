@@ -2,7 +2,7 @@ import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
 import {ChatState} from './state/chat-state.ts'
-import {fpMapSet} from '@mpen/imut-utils'
+import {fpMapSet,fpObjSet,fpShallowMerge} from '@mpen/imut-utils'
 import {uniqId} from './lib/misc.ts'
 import {mapMap} from './lib/collection.ts'
 import useEvent from './hooks/useEvent.ts'
@@ -10,13 +10,15 @@ import SendIcon from './assets/send.svg?react'
 import {Select, TextInput, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
-import {logJson} from './lib/debug.ts'
+import {logJson, varDump} from './lib/debug.ts'
 import {postSSE} from './lib/sse.ts'
 import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
 import {useState} from 'react'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
+import {UsageState} from './state/usage-state.ts'
+import {jsonStringify} from './lib/json.ts'
 
 
 
@@ -57,16 +59,46 @@ function BottomForm() {
     })
 
     const onSubmit = useEvent((data: ChatMessageForm) => {
+        const model = ModelState.getSnapshot().model
+        const info = getModelInfo(model)
+        if(!info) throw new Error(`Could not get info for model "${model}"`)
+
         reset()
 
         const sendMessages: Message[] = [
-            {role: 'system', content: "Respond using GitHub Flavored Markdown syntax where appropriate."},
+            {role: 'system', content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless I explicitly ask."},
             {role: 'user', content: data.message},
         ]
 
         const responseId = uniqId()
-        const model = ModelState.getSnapshot().model
-        const Tiktoken = import('js-tiktoken')
+
+        const TiktokenPromise = import('js-tiktoken')
+
+        // TODO: scroll this message into view so that the top aligns with the top of the window...
+        ChatState.setState(currentState => {
+            const newResponses = new Map(currentState.responses)
+            newResponses.set(uniqId(), {
+                role: 'user',
+                content: data.message,
+            })
+            return {
+                ...currentState,
+                responses: newResponses,
+            }
+        })
+
+        TiktokenPromise.then(({encodingForModel}) => {
+            const encoder = encodingForModel(model as TiktokenModel)
+            const tokensUsed = encoder.encode(data.message).length
+
+            UsageState.setState(fpShallowMerge({
+                usage: fpObjSet(info.id,fpShallowMerge({
+                    input: o => (o??0) + tokensUsed,
+                })),
+                cost: c => c + tokensUsed/1000 * info.input,
+            }))
+        })
+
 
         postSSE({
             url: COMPLETIONS_ENDPOINT,
@@ -91,23 +123,18 @@ function BottomForm() {
                         content: firstChoice.delta.content,
                     })))
             },
-            onFinish: async () => {
-                const {encodingForModel} = await Tiktoken
-                const encoder = encodingForModel(model as TiktokenModel)
-                const fullMessage = ChatState.getSnapshot().responses.get(responseId)!
-                console.log(encoder.encode(fullMessage.content))
-            }
-        })
-
-        ChatState.setState(currentState => {
-            const newResponses = new Map(currentState.responses)
-            newResponses.set(uniqId(), {
-                role: 'user',
-                content: data.message,
-            })
-            return {
-                ...currentState,
-                responses: newResponses,
+            onFinish: () => {
+                TiktokenPromise.then(({encodingForModel}) => {
+                    const encoder = encodingForModel(model as TiktokenModel)
+                    const fullMessage = ChatState.getSnapshot().responses.get(responseId)!
+                    const tokensUsed = encoder.encode(fullMessage.content).length
+                    UsageState.setState(fpShallowMerge({
+                        usage: fpObjSet(info.id, fpShallowMerge({
+                            output: o => (o ?? 0) + tokensUsed,
+                        })),
+                        cost: c => c + tokensUsed / 1000 * info.output,
+                    }))
+                })
             }
         })
     })
@@ -195,8 +222,16 @@ function SideBarContents() {
                 </label>
                 {state.model ? <ModelInfoTable model={state.model}/> : null}
             </div>
+            <ShowUsage/>
         </SideBar>
     )
+}
+
+function ShowUsage() {
+    const usage = UsageState.useState()
+    return <pre>
+        {varDump(UsageState.getSnapshot())}
+    </pre>
 }
 
 type ModelInfoTableProps = {model: OpenAiModelId}
