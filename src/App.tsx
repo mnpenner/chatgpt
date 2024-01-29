@@ -99,7 +99,6 @@ function BottomForm() {
             }))
         })
 
-
         postSSE({
             url: COMPLETIONS_ENDPOINT,
             bearerToken: ModelState.getSnapshot().apiKey,

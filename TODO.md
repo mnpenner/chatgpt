@@ -4,3 +4,6 @@
 - Calculate usage https://github.com/dqbd/tiktoken?tab=readme-ov-file#vite
 - Maybe do an accordion menu with "Chats" and "Assistants"
 - Scroll user message into view
+- Show token size of input text as you're typing
+- Show token size of each output in the message box
+- Math https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use-remark-and-rehype-plugins-math

@@ -19,11 +19,29 @@ interface SseOptions {
     body: JsonSerializable
     bearerToken?: string
     onMessage: (message: ServerSentEvent) => void
+    /**
+     * Fired when the transaction completes successfully.
+     */
     onSuccess?: () => void
+    /**
+     * Fired when the request encountered an error.
+     */
     onError?: () => void
+    /**
+     * Fired when a request has been aborted.
+     */
     onAbort?: () => void
+    /**
+     * Fired when a request has completed, whether successfully or unsuccessfully (after abort or error).
+     */
     onFinish?: () => void
-    onStart?: () => void
+    /**
+     * Called just before the XHR request is sent.
+     */
+    onStart?: (xhr: XMLHttpRequest) => void
+    /**
+     * Fired when progress is terminated due to preset time expiring.
+     */
     onTimeout?: () => void
 }
 
@@ -48,7 +66,7 @@ type ServerSentEvent = {
 }
 
 
-export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onAbort,onFinish,onTimeout}: SseOptions) {
+export function postSSE({url, body, bearerToken, onMessage,onSuccess,onStart,onError,onAbort,onFinish,onTimeout}: SseOptions) {
     const xhr = new XMLHttpRequest()
     let progress = 0
     let unparsed = ''
@@ -93,6 +111,7 @@ export function postSSE({url, body, bearerToken, onMessage,onSuccess,onError,onA
     }
     xhr.setRequestHeader(CommonHeaders.ACCEPT, ContentTypes.EVENT_STREAM)
     xhr.setRequestHeader(CommonHeaders.CONTENT_TYPE, ContentTypes.JSON)
+    if(onStart) onStart(xhr)
     xhr.send(jsonStringify(body))
 }
 

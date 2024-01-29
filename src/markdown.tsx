@@ -1,7 +1,6 @@
 import {OverrideProps} from './types/util-types.ts'
 import ReactMarkdown, {Components, Options} from 'react-markdown'
 import css from './chat.module.css'
-import {ReactNode} from 'react'
 import ClipboardSvg from './assets/clipboard.svg?react'
 import remarkGfm from 'remark-gfm'
 import useEvent from './hooks/useEvent.ts'
@@ -9,6 +8,7 @@ import cc from 'classcat'
 import {ExternalLink} from './links.tsx'
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
 import dark from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'
+import {Element} from 'hast'
 
 const LANG_PREFIX = 'language-'
 
@@ -36,8 +36,14 @@ const langMap: Record<string, string> = {
 
 const markdownComponents: Components = {
     pre({node, children, ...props}) {
-        if(node?.children.length === 1 && node.children[0]?.tagName === 'code') {
-            return <>{children}</>
+        // console.log('node',node)
+        if(node?.children.length === 1) {
+            const child = node.children[0] as Element
+            if(child.tagName === 'code') {
+                child.properties.block = true
+                // console.log('node.children[0]',node.children[0])
+                return <>{children}</>
+            }
         }
         return <pre {...props}>{children}</pre>
     },
@@ -51,11 +57,13 @@ const markdownComponents: Components = {
     //     return <p>{children}</p>
     // },
     code({children, className, node, ref, ...rest}) {
+        // console.log(node?.properties.inline)
+        // console.log('node',node,'children',children,'rest',rest)
 
         // console.log(node,inline,className,props)
-        // if(inline) {
-        //     return <code className={css.inlineCode} {...props}>{children}</code>
-        // }
+        if(!node?.properties.block) {
+            return <code className={css.inlineCode} {...rest}>{children}</code>
+        }
         const lang = className?.startsWith(LANG_PREFIX) ? className.slice(LANG_PREFIX.length) : null
 
         const copyToClipboard = useEvent(() => {
@@ -66,14 +74,15 @@ const markdownComponents: Components = {
                 return prev
             }, '')
 
-            navigator.clipboard.writeText(text)
+            navigator.clipboard.writeText(text).catch(console.error)
         })
 
         return (
             <div className={css.codeBlockWrapper}>
                 <div className={css.codeAboveBar}>
                     {lang ? <span className={cc([css.langName, langMap[lang.toLowerCase()]])}>{lang}</span> : null}
-                    <button className={css.copyLink} onClick={copyToClipboard}><ClipboardSvg /><span>Copy</span>
+                    <button className={css.copyLink} onClick={copyToClipboard}>
+                        <ClipboardSvg /><span>Copy</span>
                     </button>
                 </div>
                 {lang ? <SyntaxHighlighter

@@ -265,8 +265,10 @@
 }
 
 .inline-code {
-    background: rgba(255, 255, 255, .075);
-    padding: 1px 3px;
+    background-color: rgba(30, 30, 30, 0.5);
+    /*background: rgba(255, 255, 255, .075);*/
+    /*background-color: rgba(from var(--code-bg-color) r g b 0.9);*/
+    padding: 0.2em 0.3em;
     color: #fff;
 }
 
