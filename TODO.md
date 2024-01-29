@@ -1,10 +1,10 @@
 # TODO
 
-- Use `styled-components`? https://www.npmjs.com/package/@swc/plugin-styled-components
-- Calculate usage https://github.com/dqbd/tiktoken?tab=readme-ov-file#vite
-- Maybe do an accordion menu with "Chats" and "Assistants"
-- Scroll user message into view
-- Show token size of input text as you're typing
-- Show token size of each output in the message box
-- Math https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use-remark-and-rehype-plugins-math
-- Use Assistants API to carry a convo https://platform.openai.com/docs/assistants/overview
+- [ ] Use `styled-components`? https://www.npmjs.com/package/@swc/plugin-styled-components
+- [x] Calculate usage https://github.com/dqbd/tiktoken?tab=readme-ov-file#vite
+- [ ] Maybe do an accordion menu with "Chats" and "Assistants"
+- [ ] Scroll user message into view
+- [ ] Show token size of input text as you're typing (including prior context w/ little bar showing % fo context you're about to use)
+- [x] Show token size of each output in the chat box
+- [ ] Math https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use-remark-and-rehype-plugins-math
+- [ ] Use Assistants API to carry a convo https://platform.openai.com/docs/assistants/overview

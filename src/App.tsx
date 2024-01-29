@@ -78,10 +78,13 @@ function BottomForm() {
         const sendMessages: Message[] = [
             {
                 role: 'system',
-                content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless I explicitly ask."
+                content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks."
             },
+            ...mapMap(ChatState.getSnapshot().responses, ({role,content}) => ({role,content})),
             newUserMessage,
         ]
+
+        // varDump(sendMessages)
 
         const requestId = uniqId()
         const responseId = uniqId()
@@ -102,7 +105,11 @@ function BottomForm() {
 
         TiktokenPromise.then(({encodingForModel}) => {
             const encoder = encodingForModel(model as TiktokenModel)
-            const tokensUsed = encoder.encode(data.message).length
+            // const tokensUsed = encoder.encode(data.message).length
+
+            const tokensUsed = sendMessages.reduce((previousValue,currentValue) => {
+                return previousValue + encoder.encode(currentValue.content).length
+            }, 0)
 
             UsageState.setState(fpShallowMerge({
                 usage: fpObjSet(info.id, fpShallowMerge({
@@ -141,7 +148,7 @@ function BottomForm() {
                     }))))
             },
             onFinish: () => {
-                console.log('finish')
+                // console.log('finish')
                 TiktokenPromise.then(({encodingForModel}) => {
                     const encoder = encodingForModel(model as TiktokenModel)
                     const fullMessage = ChatState.getSnapshot().responses.get(responseId)!
