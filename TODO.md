@@ -7,3 +7,4 @@
 - Show token size of input text as you're typing
 - Show token size of each output in the message box
 - Math https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use-remark-and-rehype-plugins-math
+- Use Assistants API to carry a convo https://platform.openai.com/docs/assistants/overview

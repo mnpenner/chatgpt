@@ -1,8 +1,9 @@
 // https://github.com/mpetazzoni/sse.js/blob/main/lib/sse.js
 
 
-import {JsonResponse, JsonSerializable, jsonStringify} from './json'
+import {JsonResponse, JsonSerializable} from '../types/json-types.ts'
 import {CommonHeaders, ContentTypes} from './enums'
+import {jsonStringify} from './json-serialize.ts'
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
 export const SSE_PACKET_SEP = '\n\n'
@@ -83,7 +84,10 @@ export function postSSE({url, body, bearerToken, onMessage,onSuccess,onStart,onE
                 if(payload === undefined) throw new Error("Missing payload")
 
                 if(field === 'data') {
-                    if(payload === '[DONE]') return  // Hack for OpenAI.
+                    if(payload === '[DONE]') {
+                        // xhr.abort()
+                        return
+                    }  // Hack for OpenAI.
                     message[field] = JSON.parse(payload)
                 } else {
                     (message as any)[field] = payload

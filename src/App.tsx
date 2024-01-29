@@ -2,9 +2,9 @@ import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
 import {ChatState} from './state/chat-state.ts'
-import {fpMapSet,fpObjSet,fpShallowMerge} from '@mpen/imut-utils'
-import {uniqId} from './lib/misc.ts'
-import {mapMap} from './lib/collection.ts'
+import {fpMapSet, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
+import {fullWide, uniqId} from './lib/misc.ts'
+import {mapMap, mapObj} from './lib/collection.ts'
 import useEvent from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
 import {Select, TextInput, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
@@ -18,8 +18,8 @@ import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-import {jsonStringify} from './lib/json.ts'
 
+import {jsonStringify} from './lib/json-serialize.ts'
 
 
 const Page = withClass('div', css.page)
@@ -43,8 +43,13 @@ function MessageList() {
             {mapMap(messages, (res, key) => (
                 <ChatBubble className={res.role === 'user' ? css.user : css.assistant}
                     key={key}>
-                    <div>{res.role}</div>
-                    <Markdown>{res.content}</Markdown>
+                    <div className={css.chatNameRow}>
+                        <span className={css.chatRole}>{res.role}</span>
+                        {res.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(res.tokenCount)}>{formatNumber(res.tokenCount)}</data> tokens</span> : null}
+                    </div>
+                    <div>
+                        <Markdown>{res.content}</Markdown>
+                    </div>
                 </ChatBubble>
             ))}
         </ol>
@@ -65,38 +70,51 @@ function BottomForm() {
 
         reset()
 
+        const newUserMessage: Message = {
+            role: 'user',
+            content: data.message,
+        }
+
         const sendMessages: Message[] = [
-            {role: 'system', content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless I explicitly ask."},
-            {role: 'user', content: data.message},
+            {
+                role: 'system',
+                content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless I explicitly ask."
+            },
+            newUserMessage,
         ]
 
+        const requestId = uniqId()
         const responseId = uniqId()
 
         const TiktokenPromise = import('js-tiktoken')
 
         // TODO: scroll this message into view so that the top aligns with the top of the window...
-        ChatState.setState(currentState => {
-            const newResponses = new Map(currentState.responses)
-            newResponses.set(uniqId(), {
-                role: 'user',
-                content: data.message,
-            })
-            return {
-                ...currentState,
-                responses: newResponses,
-            }
-        })
+
+        ChatState.setState(fpObjSet('responses', fpMapSet(requestId, newUserMessage)))
+        // ChatState.setState(currentState => {
+        //     const newResponses = new Map(currentState.responses)
+        //     newResponses.set(requestId, newUserMessage)
+        //     return {
+        //         ...currentState,
+        //         responses: newResponses,
+        //     }
+        // })
 
         TiktokenPromise.then(({encodingForModel}) => {
             const encoder = encodingForModel(model as TiktokenModel)
             const tokensUsed = encoder.encode(data.message).length
 
             UsageState.setState(fpShallowMerge({
-                usage: fpObjSet(info.id,fpShallowMerge({
-                    input: o => (o??0) + tokensUsed,
+                usage: fpObjSet(info.id, fpShallowMerge({
+                    input: o => (o ?? 0) + tokensUsed,
                 })),
-                cost: c => c + tokensUsed/1000 * info.input,
+                cost: c => c + tokensUsed / 1000 * info.input,
             }))
+
+            ChatState.setState(fpObjSet('responses', fpMapSet(requestId, res => ({
+                ...res!,
+                tokenCount: tokensUsed,
+            }))))
         })
 
         postSSE({
@@ -113,20 +131,27 @@ function BottomForm() {
                 if(!data.choices?.length) return
                 const firstChoice = data.choices[0]
                 if(firstChoice.finish_reason != null) return
-                ChatState.set('responses', fpMapSet(responseId, oldMsg => (
-                    oldMsg ? {
-                        ...oldMsg,
-                        content: oldMsg.content + firstChoice.delta.content
+                ChatState.setState(fpObjSet('responses', fpMapSet(responseId, res => (
+                    res ? {
+                        ...res,
+                        content: res.content + firstChoice.delta.content
                     } : {
                         role: 'assistant',
                         content: firstChoice.delta.content,
-                    })))
+                    }))))
             },
             onFinish: () => {
+                console.log('finish')
                 TiktokenPromise.then(({encodingForModel}) => {
                     const encoder = encodingForModel(model as TiktokenModel)
                     const fullMessage = ChatState.getSnapshot().responses.get(responseId)!
                     const tokensUsed = encoder.encode(fullMessage.content).length
+                    // console.log('settting')
+                    ChatState.setState(fpObjSet('responses', fpMapSet(responseId, res => ({
+                            ...res!,
+                            tokenCount: tokensUsed
+                        }
+                    ))))
                     UsageState.setState(fpShallowMerge({
                         usage: fpObjSet(info.id, fpShallowMerge({
                             output: o => (o ?? 0) + tokensUsed,
@@ -174,28 +199,28 @@ function formatPrice(value: number): string {
         currency: 'USD',
         minimumFractionDigits: 4,
         maximumFractionDigits: 4,
-    });
+    })
 
-    return formatter.format(value);
+    return formatter.format(value)
 }
 
 function formatNumber(value: number): string {
     const formatter = new Intl.NumberFormat('en-US', {
         maximumFractionDigits: 4,
-    });
+    })
 
-    return formatter.format(value);
+    return formatter.format(value)
 }
 
 function SideBarContents() {
     const state = ModelState.useState()
 
     const keyChange = useEvent((ev: InputChangeEvent) => {
-        ModelState.set('apiKey', ev.value)
+        ModelState.setState(fpObjSet('apiKey', ev.value))
     })
 
     const modelChange = useEvent((ev: SelectChangeEvent<string>) => {
-        ModelState.set('model', ev.value)
+        ModelState.setState(fpObjSet('model', ev.value))
     })
 
     return (
@@ -219,21 +244,43 @@ function SideBarContents() {
                     <span>Model</span>
                     <Select options={MODEL_OPTIONS} value={state.model} onChange={modelChange} />
                 </label>
-                {state.model ? <ModelInfoTable model={state.model}/> : null}
+                {state.model ? <ModelInfoTable model={state.model} /> : null}
             </div>
-            <ShowUsage/>
+            <ShowUsage />
         </SideBar>
     )
 }
 
 function ShowUsage() {
-    const usage = UsageState.useState()
-    return <pre>
-        {varDump(UsageState.getSnapshot())}
-    </pre>
+    const state = UsageState.useState()
+    return (
+        <div>
+            <h3>Usage</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Input</th>
+                        <th>Output</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {mapObj(state.usage, (v, k) => <tr key={k}>
+                        <td>{k}</td>
+                        <td>{formatNumber(v.input)}</td>
+                        <td>{formatNumber(v.output)}</td>
+                    </tr>)}
+                </tbody>
+            </table>
+            <div>
+                Total Cost: <data value={fullWide(state.cost)}>{formatPrice(state.cost)}</data>
+            </div>
+        </div>
+    )
 }
 
-type ModelInfoTableProps = {model: OpenAiModelId}
+type ModelInfoTableProps = { model: OpenAiModelId }
+
 function ModelInfoTable({model}: ModelInfoTableProps) {
     const info = getModelInfo(model)
     if(!info) return null

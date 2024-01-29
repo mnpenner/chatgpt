@@ -6,3 +6,11 @@ let id=0
 export function uniqId() {
     return '$'+(id++).toString(36)
 }
+
+export function fullWide(n: number): string {
+    try {
+        return n.toLocaleString('en-US', {useGrouping: false, maximumFractionDigits: 20})
+    } catch {
+        return n.toFixed(14).replace(/\.?0+$/, '')
+    }
+}

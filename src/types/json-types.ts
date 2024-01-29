@@ -12,21 +12,6 @@ type JsonSet = Set<JsonPrimitive>  // will be converted into an array
  */
 export type JsonSerializable = JsonPrimitive | JsonSerializableObject | JsonArray | JsonSet | JsonMap
 
-function jsonReplacer(this: any, _key: string, value: any): any {
-    if(value instanceof Set) {
-        return Array.from(value)
-    }
-    if(value instanceof Map) {
-        return Object.fromEntries(value.entries())
-    }
-    return value
-}
-
-
-export function jsonStringify(obj: JsonSerializable, space?: string | number): string {
-    return JSON.stringify(obj, jsonReplacer, space)
-}
-
 
 /**
  * Represents a possible return value from JSON.parse

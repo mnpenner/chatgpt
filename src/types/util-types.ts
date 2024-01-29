@@ -2,7 +2,6 @@ export type EmptyObject = Record<PropertyKey, never>
 export type UnknownObject = Record<PropertyKey, unknown>
 export type AnyObject = Record<PropertyKey, any>
 export type AnyArray = any[]
-export type AnyDbEntity = Record<string, string | number>
 
 export type nil = null | undefined
 

@@ -1,10 +1,11 @@
-import {JsonSerializable, jsonStringify} from './json.ts'
+import {JsonSerializable} from '../types/json-types.ts'
+import {jsonParse, jsonStringify} from './json-serialize.ts'
 
 export function localStorageGetJson(key: string, defaultValue = null) {
     const item = localStorage.getItem(key)
     if(item === null) return defaultValue
     try {
-        return JSON.parse(item)
+        return jsonParse(item)
     } catch {
         return defaultValue
     }

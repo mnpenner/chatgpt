@@ -62,13 +62,13 @@ export function createGlobalState<TState extends AnyObject>(initialState: TState
         return React.useEffect(() => store.subscribe(listener), [])
     }
 
-    function set<K extends keyof TState>(key: K, value: Next<TState[K]>) {
-        store.setState(state => ({
-            ...state,
-            [key]: resolveValue(value, state[key]),
-        }));
-
-    }
+    // function set<K extends keyof TState>(key: K, value: Next<TState[K]>) {
+    //     store.setState(state => ({
+    //         ...state,
+    //         [key]: resolveValue(value, state[key]),
+    //     }));
+    //
+    // }
 
     // function merge(value: {
     //     [K in keyof TState]?: Resolvable<TState[K], [TState[K], K]>;
@@ -78,7 +78,7 @@ export function createGlobalState<TState extends AnyObject>(initialState: TState
 
     return {
         useState,
-        set,
+        // set,
         setState: store.setState,
         subscribe,
         getSnapshot: store.getSnapshot,

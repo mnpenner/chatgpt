@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+//    "composite": true,
+//    "lib": ["ESNext"],
+//    "module": "esnext",
+//    "allowImportingTsExtensions": true,
+//    "target": "esnext",
+    // "bun-types" is the important part
+    "types": ["bun-types"]
+  },
+//  "include": ["src"]
+}

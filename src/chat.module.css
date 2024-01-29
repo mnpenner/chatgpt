@@ -272,5 +272,21 @@
     color: #fff;
 }
 
+.chat-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.chat-role {
+    font-weight: bold;
+
+}
+
+.chat-token-count {
+    opacity: 0.5;
+    font-size: small;
+}
+
 /*}*/
 

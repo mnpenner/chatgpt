@@ -1,4 +1,4 @@
-import {jsonStringify} from './json'
+import {jsonStringify} from './json-serialize.ts'
 
 export function varDump(x: any) {
     if(x === undefined) return '(undefined)'

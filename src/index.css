@@ -65,6 +65,7 @@
     }
 
     p {
+        margin: 0;
         &:not(:first-child) {
             margin-top: var(--p-margin);
         }
