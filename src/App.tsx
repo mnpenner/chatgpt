@@ -10,16 +10,12 @@ import SendIcon from './assets/send.svg?react'
 import {Select, TextInput, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
-import {logJson, varDump} from './lib/debug.ts'
 import {postSSE} from './lib/sse.ts'
 import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
-import {useState} from 'react'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-
-import {jsonStringify} from './lib/json-serialize.ts'
 
 
 const Page = withClass('div', css.page)
@@ -78,7 +74,7 @@ function BottomForm() {
         const sendMessages: Message[] = [
             {
                 role: 'system',
-                content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks."
+                content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks. Write formulas, math equations and symbols using `remark-math` syntax. Large formulas should go on their own line, separated with $$ on either side; e.g.\n\n$$\nL = \\frac{1}{2} \\rho v^2 S C_L\n$$\n\nMath symbols should be written with a single $ on either side, e.g. $C_L$"
             },
             ...mapMap(ChatState.getSnapshot().responses, ({role,content}) => ({role,content})),
             newUserMessage,
@@ -107,20 +103,20 @@ function BottomForm() {
             const encoder = encodingForModel(model as TiktokenModel)
             // const tokensUsed = encoder.encode(data.message).length
 
-            const tokensUsed = sendMessages.reduce((previousValue,currentValue) => {
+            const totalInputTokens = sendMessages.reduce((previousValue,currentValue) => {
                 return previousValue + encoder.encode(currentValue.content).length
             }, 0)
 
             UsageState.setState(fpShallowMerge({
                 usage: fpObjSet(info.id, fpShallowMerge({
-                    input: o => (o ?? 0) + tokensUsed,
+                    input: o => (o ?? 0) + totalInputTokens,
                 })),
-                cost: c => c + tokensUsed / 1000 * info.input,
+                cost: c => c + totalInputTokens / 1000 * info.input,
             }))
 
             ChatState.setState(fpObjSet('responses', fpMapSet(requestId, res => ({
                 ...res!,
-                tokenCount: tokensUsed,
+                tokenCount: encoder.encode(newUserMessage.content).length,
             }))))
         })
 

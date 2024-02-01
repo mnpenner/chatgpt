@@ -10,5 +10,10 @@ export default defineConfig({
     modules: {
       localsConvention: 'camelCaseOnly',
     }
+  },
+  server: {
+    // https://github.com/vitejs/vite/issues/11468#issuecomment-1407476069
+    host: '0.0.0.0'
+    // host: '127.0.0.1'
   }
 })

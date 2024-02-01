@@ -41,6 +41,11 @@
     color: #FFFFFF;
 }
 
+.lang-zig {
+    color: #F7A41E;
+    --lang-bg-color: #111111;
+}
+
 .lang-ts {
     --lang-bg-color: #3078C6;
     color: #FFFFFF;

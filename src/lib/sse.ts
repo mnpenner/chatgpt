@@ -35,7 +35,7 @@ interface SseOptions {
     /**
      * Fired when a request has completed, whether successfully or unsuccessfully (after abort or error).
      */
-    onFinish?: () => void
+    onFinish?: () => void  // FIXME: doesn't actually fire on abort ???
     /**
      * Called just before the XHR request is sent.
      */

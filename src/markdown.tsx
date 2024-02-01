@@ -9,6 +9,9 @@ import {ExternalLink} from './links.tsx'
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
 import dark from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'
 import {Element} from 'hast'
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
+import 'katex/dist/katex.min.css' // `rehype-katex` does not import the CSS for you
 
 const LANG_PREFIX = 'language-'
 
@@ -32,6 +35,8 @@ const langMap: Record<string, string> = {
 
     rs: css.langRust,
     rust: css.langRust,
+
+    zig: css.langZig,
 }
 
 const markdownComponents: Components = {
@@ -74,16 +79,16 @@ const markdownComponents: Components = {
                 return prev
             }, '')
 
-            navigator.clipboard.writeText(text).catch(console.error)
+            navigator.clipboard?.writeText(text).catch(console.error)
         })
 
         return (
             <div className={css.codeBlockWrapper}>
                 <div className={css.codeAboveBar}>
                     {lang ? <span className={cc([css.langName, langMap[lang.toLowerCase()]])}>{lang}</span> : null}
-                    <button className={css.copyLink} onClick={copyToClipboard}>
+                    {navigator.clipboard ? <button className={css.copyLink} onClick={copyToClipboard}>
                         <ClipboardSvg /><span>Copy</span>
-                    </button>
+                    </button>  : null}
                 </div>
                 {lang ? <SyntaxHighlighter
                     {...rest}
@@ -103,5 +108,5 @@ const markdownComponents: Components = {
 export type MarkdownProps = OverrideProps<typeof ReactMarkdown, {}, 'components'>
 
 export function Markdown(props: MarkdownProps) {
-    return <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]} {...props} />
+    return <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm,remarkMath]} rehypePlugins={[rehypeKatex]} {...props} />
 }
