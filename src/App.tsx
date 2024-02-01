@@ -7,7 +7,7 @@ import {fullWide, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
-import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
+import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type TextAreaProps, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
 import {postSSE} from './lib/sse.ts'
@@ -27,7 +27,7 @@ const ChatStack = withClass('div', css.chatStack)
 const ChatBar = withClass('div', css.chatBar)
 const ChatBubble = withClass('li', css.chatBubble)
 const SideBar = withClass('div', css.sidebar)
-const AutoTextArea = withClass(_TextArea, css.autosizeTextarea)
+const AutoTextArea = withClass<TextAreaProps,TextAreaRef>(_TextArea, css.autosizeTextarea)
 
 type ChatMessageForm = {
     message: string
@@ -61,7 +61,7 @@ function BottomForm() {
         }
     })
 
-    const taRef = useRef<TextAreaRef>(null)
+    const taRef = useRef<TextAreaRef|null>(null)
 
     const onSubmit = useEventHandler((data: ChatMessageForm) => {
         const model = ModelState.getSnapshot().model

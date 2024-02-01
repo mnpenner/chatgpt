@@ -10,12 +10,12 @@ type WithClassProps = {
 };
 
 // The withClass function
-export function withClass<P extends WithClassProps>(
+export function withClass<P extends WithClassProps, Ref=HTMLElement>(
     Component: React.ElementType<P>,
     className: Class
-): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<HTMLElement>> {
+): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<Ref>> {
     // Return a new component with forwardRef
-    const component = React.forwardRef<HTMLElement, P>((props, ref) => {
+    const component = React.forwardRef<Ref, P>((props, ref) => {
         // Render the component with combined className, other props, and ref
         // Using type assertion here to tell TypeScript that Component is a valid JSX element
         const C = Component as React.ElementType
