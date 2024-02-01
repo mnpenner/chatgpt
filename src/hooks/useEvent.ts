@@ -1,6 +1,6 @@
 // https://github.com/scottrippey/react-use-event-hook/blob/75ba34af9175dc311afb3fb302d6fea44e4a5203/src/useEvent.ts
 import {useInsertionEffect, useRef} from "react"
-import {AnyFn, AnyObject} from '../types/util-types.ts'
+import {AnyFn, AnyObject, EventCallback} from '../types/util-types.ts'
 import {NOOP} from '../lib/constants.ts'
 
 
@@ -11,7 +11,7 @@ import {NOOP} from '../lib/constants.ts'
  * - No dependency lists required
  * - Properties or state accessed within the callback will always be "current"
  */
-export default function useEvent<TCallback extends AnyFn>(callback: TCallback): TCallback {
+export default function useEventHandler<TCallback extends AnyFn>(callback: TCallback): TCallback {
     // Keep track of the latest callback:
     const latestRef = useRef<TCallback>(import.meta.env.DEV ? useEvent_shouldNotBeInvokedBeforeMount : NOOP as any)
     useInsertionEffect(() => {
@@ -28,6 +28,10 @@ export default function useEvent<TCallback extends AnyFn>(callback: TCallback): 
     }
 
     return stableRef.current
+}
+
+export function useEvent<T>(handler: EventCallback<T>) {
+    return useEventHandler(handler);
 }
 
 /**

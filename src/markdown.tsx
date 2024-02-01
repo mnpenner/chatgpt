@@ -3,7 +3,7 @@ import ReactMarkdown, {Components, Options} from 'react-markdown'
 import css from './chat.module.css'
 import ClipboardSvg from './assets/clipboard.svg?react'
 import remarkGfm from 'remark-gfm'
-import useEvent from './hooks/useEvent.ts'
+import useEventHandler from './hooks/useEvent.ts'
 import cc from 'classcat'
 import {ExternalLink} from './links.tsx'
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
@@ -71,7 +71,7 @@ const markdownComponents: Components = {
         }
         const lang = className?.startsWith(LANG_PREFIX) ? className.slice(LANG_PREFIX.length) : null
 
-        const copyToClipboard = useEvent(() => {
+        const copyToClipboard = useEventHandler(() => {
             const text = node!.children.reduce((prev, curr) => {
                 if(curr.type === 'text') {
                     return prev + curr.value

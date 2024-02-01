@@ -293,5 +293,12 @@
     font-size: small;
 }
 
+.autosize-textarea {
+    resize: none;
+    overflow: hidden;
+    /*line-height: 1.15em;*/
+    /*height: 1.15em;*/
+}
+
 /*}*/
 

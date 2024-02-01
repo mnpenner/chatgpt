@@ -27,6 +27,7 @@ module.exports = {
         '@typescript-eslint/no-this-alias': 'warn',
         '@typescript-eslint/no-explicit-any': 'off',
         'no-control-regex': 'off',
+        'prefer-rest-params': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-empty-interface': [
             'warn',

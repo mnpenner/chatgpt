@@ -5,9 +5,9 @@ import {ChatState} from './state/chat-state.ts'
 import {fpMapSet, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
 import {fullWide, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
-import useEvent from './hooks/useEvent.ts'
+import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
-import {Select, TextInput, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
+import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
 import {postSSE} from './lib/sse.ts'
@@ -16,6 +16,7 @@ import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
+import React, {useRef} from 'react'
 
 
 const Page = withClass('div', css.page)
@@ -26,6 +27,7 @@ const ChatStack = withClass('div', css.chatStack)
 const ChatBar = withClass('div', css.chatBar)
 const ChatBubble = withClass('li', css.chatBubble)
 const SideBar = withClass('div', css.sidebar)
+const AutoTextArea = withClass(_TextArea, css.autosizeTextarea)
 
 type ChatMessageForm = {
     message: string
@@ -59,12 +61,16 @@ function BottomForm() {
         }
     })
 
-    const onSubmit = useEvent((data: ChatMessageForm) => {
+    const taRef = useRef<TextAreaRef>(null)
+
+    const onSubmit = useEventHandler((data: ChatMessageForm) => {
         const model = ModelState.getSnapshot().model
         const info = getModelInfo(model)
         if(!info) throw new Error(`Could not get info for model "${model}"`)
 
         reset()
+        taRef.current?.resize()
+
 
         const newUserMessage: Message = {
             role: 'user',
@@ -166,10 +172,24 @@ function BottomForm() {
         })
     })
 
+    const doSubmit = handleSubmit(onSubmit)
+
+    const handleKeyDown = useEvent<React.KeyboardEvent<HTMLTextAreaElement>>(event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Prevent the default action (inserting a new line)
+            doSubmit()
+        }
+    })
+
+    const taProps = register("message", {required: true})
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className={css.chatBar}>
+        <form onSubmit={doSubmit} className={css.chatBar}>
             <div className={css.flex1}>
-                <input className={css.input} {...register("message", {required: true})} />
+                <AutoTextArea rows={1} className={css.input} onKeyDown={handleKeyDown} {...taProps} ref={ref => {
+                    taRef.current = ref
+                    taProps.ref(ref?.element)
+                }} />
             </div>
             <button type="submit" className={css.imageButton}>
                 <SendIcon />
@@ -218,11 +238,11 @@ function formatNumber(value: number): string {
 function SideBarContents() {
     const state = ModelState.useState()
 
-    const keyChange = useEvent((ev: InputChangeEvent) => {
+    const keyChange = useEventHandler((ev: InputChangeEvent) => {
         ModelState.setState(fpObjSet('apiKey', ev.value))
     })
 
-    const modelChange = useEvent((ev: SelectChangeEvent<string>) => {
+    const modelChange = useEventHandler((ev: SelectChangeEvent<string>) => {
         ModelState.setState(fpObjSet('model', ev.value))
     })
 
