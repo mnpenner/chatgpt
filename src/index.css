@@ -3,14 +3,15 @@
 @layer normalize, base, module;
 
 @layer base {
-    html {
-        box-sizing: border-box;
-    }
-    *, *:before, *:after {
-        /* https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
-        box-sizing: inherit;
-    }
+    /*html {*/
+    /* */
+    /*}*/
+    /**, *:before, *:after {*/
+    /*    !* https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ *!*/
+    /*    box-sizing: inherit;*/
+    /*}*/
     * {
+        box-sizing: border-box;
         /* fix flex-box */
         min-width: 0;
         /* fix overflowing <select>s */

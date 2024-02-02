@@ -1,7 +1,7 @@
 import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
-import {ChatState} from './state/chat-state.ts'
+import {ChatState, ResponseMessage} from './state/chat-state.ts'
 import {fpMapSet, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
 import {fullWide, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
@@ -17,6 +17,7 @@ import type {TiktokenModel} from "js-tiktoken"
 import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
 import React, {useRef} from 'react'
+import cc from 'classcat'
 
 
 const Page = withClass('div', css.page)
@@ -25,7 +26,7 @@ const TopBar = withClass('div', css.topBar)
 const BottomBar = withClass('div', css.bottomBar)
 const ChatStack = withClass('div', css.chatStack)
 const ChatBar = withClass('div', css.chatBar)
-const ChatBubble = withClass('li', css.chatBubble)
+const ChatBubble = withClass('div', css.chatBubble)
 const SideBar = withClass('div', css.sidebar)
 const AutoTextArea = withClass<TextAreaProps,TextAreaRef>(_TextArea, css.autosizeTextarea)
 
@@ -33,30 +34,47 @@ type ChatMessageForm = {
     message: string
 }
 
-function MessageList() {
-    const messages = ChatState.useState(s => s.responses)
+function RenderMessage({message:message,id:id}: {id:string,message:ResponseMessage}) {
 
     return (
-        <ol className={css.chatList}>
-            {mapMap(messages, (res, key) => (
-                <ChatBubble className={res.role === 'user' ? css.user : css.assistant}
-                    key={key}>
-                    <div className={css.chatNameRow}>
-                        <span className={css.chatRole}>{res.role}</span>
-                        <span className={css.chatRowOptions}>
-                            {res.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(res.tokenCount)}>{formatNumber(res.tokenCount)}</data> tokens</span> : null}
-                            <label><input type="checkbox" checked={!!res.rawMarkdown} onChange={() => {
-                                ChatState.setState(fpObjSet('responses',fpMapSet(key,fpObjSet('rawMarkdown',b => !b))))
-                            }} /> Raw</label>
+        <ChatBubble className={message.role === 'user' ? css.user : css.assistant}>
+            <div className={css.chatNameRow}>
+                <span className={css.chatRole}>{message.role}</span>
+                <span className={css.chatRowOptions}>
+                            {message.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(message.tokenCount)}>{formatNumber(message.tokenCount)}</data> tokens</span> : null}
+                    <label><input type="checkbox" checked={!!message.rawMarkdown} onChange={() => {
+                        ChatState.setState(fpObjSet('responses',fpMapSet(id,fpObjSet('rawMarkdown',b => !b))))
+                    }} /> Raw</label>
                         </span>
-                    </div>
-                    <div>
-                        {res.rawMarkdown ? <pre>{res.content}</pre> : <Markdown>{res.content}</Markdown>}
+            </div>
+            <div>
+                {message.rawMarkdown ? <pre>{message.content}</pre> : <Markdown>{message.content}</Markdown>}
 
-                    </div>
-                </ChatBubble>
-            ))}
-        </ol>
+            </div>
+        </ChatBubble>
+    )
+}
+
+function MessageList() {
+    const messages = Array.from(ChatState.useState(s => s.responses))
+
+    const idx = messages.findLastIndex(([_,msg]) => msg.role === 'user')
+
+
+
+    // last index of res.role === user
+
+    return (
+        <div className={css.chatList}>
+            {idx === -1
+                ? messages.map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>) : <>
+
+                {messages.slice(0,idx).map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>)}
+                <div className={cc([css.lastUserMessage,css.chatList])}>
+                    {messages.slice(idx).map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>)}
+                </div>
+            </>}
+        </div>
     )
 }
 
@@ -209,7 +227,7 @@ function ChatContents() {
     return (
         <ChatStack>
             <TopBar>
-                <Indent>
+                <Indent className={css.height100}>
                     <MessageList />
                 </Indent>
             </TopBar>

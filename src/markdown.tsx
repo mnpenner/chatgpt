@@ -1,4 +1,4 @@
-import {OverrideProps} from './types/util-types.ts'
+import {Override, OverrideProps} from './types/util-types.ts'
 import ReactMarkdown, {Components, Options} from 'react-markdown'
 import css from './chat.module.css'
 import ClipboardSvg from './assets/clipboard.svg?react'
@@ -6,9 +6,10 @@ import remarkGfm from 'remark-gfm'
 import useEventHandler from './hooks/useEvent.ts'
 import cc from 'classcat'
 import {ExternalLink} from './links.tsx'
-import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
-import dark from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'
-import {Element} from 'hast'
+import usePromise from './hooks/usePromise.ts'
+import type {Element} from 'hast'
+import type {SyntaxHighlighterProps} from 'react-syntax-highlighter'
+
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css' // `rehype-katex` does not import the CSS for you
@@ -90,19 +91,47 @@ const markdownComponents: Components = {
                         <ClipboardSvg /><span>Copy</span>
                     </button>  : null}
                 </div>
-                {lang ? <SyntaxHighlighter
-                    {...rest}
-                    PreTag="div"
-                    children={String(children).replace(/\n$/, '')}
-                    language={lang}
-                    style={dark}
-                    customStyle={{
-                        margin: 0,
-                    }}
-                /> : <code className={cc([css.codeblock, lang && css.hasLang])} {...rest}>{children}</code>}
+                {lang ? <HighlightedCode code={String(children).replace(/\n$/, '')} language={lang}/>
+                 : <code className={cc([css.codeblock, lang && css.hasLang])} {...rest}>{children}</code>}
             </div>
         )
     }
+}
+
+type HighlightedCodeProps =  {
+    code: string
+    language: string
+}
+
+function HighlightedCode({code,language}: HighlightedCodeProps) {
+    // import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
+    // import dark from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'
+    //
+    // import rehypeKatex from 'rehype-katex'
+    // import remarkMath from 'remark-math'
+    // import 'katex/dist/katex.min.css' // `rehype-katex` does not import the CSS for you
+
+    const promise = usePromise(() => Promise.all([
+        import('react-syntax-highlighter'),
+        import('react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'),
+    ]), [])
+
+    if(!promise.value) {
+        return <code className={cc([css.codeblock, language && css.hasLang])}>{code}</code>
+    }
+
+    const [{Prism},dark] = promise.value
+
+    return (
+        <Prism
+            PreTag="div"
+            language={language}
+            style={dark.default}
+            customStyle={{
+                margin: 0,
+            }}
+        >{code}</Prism>
+    )
 }
 
 export type MarkdownProps = OverrideProps<typeof ReactMarkdown, {}, 'components'>

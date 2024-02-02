@@ -100,7 +100,14 @@
     flex-direction: column;
     list-style: none;
     margin: 0;
+    /*padding: 10px 0;*/
+    height: 100%;
+}
+
+.height100 {
+    height: 100%;
     padding: 10px 0;
+    box-sizing: content-box;
 }
 
 .api-key-input {
@@ -298,6 +305,11 @@
 .chat-token-count {
     opacity: 0.5;
     font-size: small;
+}
+
+.last-user-message {
+    min-height: 100%;
+    padding-top: 10px; /* creates a little gap when you're scrolled all the way to the bottom */
 }
 
 .autosize-textarea {
