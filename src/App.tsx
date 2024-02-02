@@ -43,10 +43,16 @@ function MessageList() {
                     key={key}>
                     <div className={css.chatNameRow}>
                         <span className={css.chatRole}>{res.role}</span>
-                        {res.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(res.tokenCount)}>{formatNumber(res.tokenCount)}</data> tokens</span> : null}
+                        <span className={css.chatRowOptions}>
+                            {res.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(res.tokenCount)}>{formatNumber(res.tokenCount)}</data> tokens</span> : null}
+                            <label><input type="checkbox" checked={!!res.rawMarkdown} onChange={() => {
+                                ChatState.setState(fpObjSet('responses',fpMapSet(key,fpObjSet('rawMarkdown',b => !b))))
+                            }} /> Raw</label>
+                        </span>
                     </div>
                     <div>
-                        <Markdown>{res.content}</Markdown>
+                        {res.rawMarkdown ? <pre>{res.content}</pre> : <Markdown>{res.content}</Markdown>}
+
                     </div>
                 </ChatBubble>
             ))}
@@ -69,7 +75,7 @@ function BottomForm() {
         if(!info) throw new Error(`Could not get info for model "${model}"`)
 
         reset()
-        taRef.current?.resize()
+        taRef.current?.adjustHeight()
 
 
         const newUserMessage: Message = {
@@ -186,7 +192,7 @@ function BottomForm() {
     return (
         <form onSubmit={doSubmit} className={css.chatBar}>
             <div className={css.flex1}>
-                <AutoTextArea rows={1} className={css.input} onKeyDown={handleKeyDown} {...taProps} ref={ref => {
+                <AutoTextArea initialHeight="0" className={css.input} onKeyDown={handleKeyDown} {...taProps} ref={ref => {
                     taRef.current = ref
                     taProps.ref(ref?.element)
                 }} />
@@ -249,8 +255,10 @@ function SideBarContents() {
     return (
         <SideBar>
             <div>
-                <button>New Chat</button>
-                <button>Settings</button>
+                <button onClick={() => {
+                    ChatState.setState(fpObjSet('responses',new Map))
+                }}>New Chat</button>
+                {/*<button>Settings</button>*/}
             </div>
             <div>
                 <label>
@@ -272,6 +280,10 @@ function SideBarContents() {
             <ShowUsage />
         </SideBar>
     )
+}
+
+function Price({value}: {value:number}) {
+    return <data value={fullWide(value)}>{formatPrice(value)}</data>
 }
 
 function ShowUsage() {
@@ -296,7 +308,7 @@ function ShowUsage() {
                 </tbody>
             </table>
             <div>
-                Total Cost: <data value={fullWide(state.cost)}>{formatPrice(state.cost)}</data>
+                <b>Total Cost:</b> <Price value={state.cost}/>
             </div>
         </div>
     )
@@ -317,11 +329,11 @@ function ModelInfoTable({model}: ModelInfoTableProps) {
                 </tr> : null}
                 <tr>
                     <th>Input</th>
-                    <td>{formatPrice(info.input)} / 1k tokens</td>
+                    <td><Price value={info.input}/> / 1k tokens</td>
                 </tr>
                 <tr>
                     <th>Output</th>
-                    <td>{formatPrice(info.output)} / 1k tokens</td>
+                    <td><Price value={info.output}/> / 1k tokens</td>
                 </tr>
                 {info.contextWindow ? <tr>
                     <th>Context</th>

@@ -3,6 +3,7 @@ import {Message} from '../types/openai.ts'
 
 export interface ResponseMessage extends Message {
     tokenCount?: number
+    rawMarkdown?: boolean
 }
 
 type ChatStateType = {

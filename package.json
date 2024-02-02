@@ -12,9 +12,9 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@mpen/imut-utils": "^0.1.46",
-    "@mpen/is-type": "^0.1.9",
-    "@mpen/react-basic-inputs": "0.1.6",
+    "@mpen/imut-utils": "*",
+    "@mpen/is-type": "*",
+    "@mpen/react-basic-inputs": "^0.1.7",
     "classcat": "^5.0.4",
     "js-tiktoken": "^1.0.10",
     "react": "^18.2.0",

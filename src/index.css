@@ -31,7 +31,7 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
-        --p-margin: 1em;
+        --p-margin: 0.85em;
         --code-bg-color: #1E1E1E;
     }
 
@@ -40,18 +40,22 @@
     }
 
     td, th {
-        &:not(:last-child) {
-            padding-right: .5em;
-        }
-        &:not(:first-child) {
-            padding-left: .5em;
-        }
+        border: 1px solid rgba(255,255,255,.5);
+        padding: .1em .4em;
+    }
+
+    table {
+        border-collapse: collapse;
     }
 
     @scope (tbody) to (table) {
         th {
             text-align: left;
         }
+    }
+
+    h1,h2,h3,h4,h5,h6 {
+        margin: 1em 0 .5em 0;
     }
 
     a {
@@ -64,14 +68,26 @@
         }
     }
 
-    p {
+    blockquote {
         margin: 0;
+        margin-left: .333rem;
+        border-left: .25rem solid rgba(255,255,255,0.5);
+        padding: .25em .333em;
+    }
+
+    p, blockquote, pre, table {
+        margin-block: 0;
         &:not(:first-child) {
             margin-top: var(--p-margin);
         }
         &:not(:last-child) {
             margin-bottom: var(--p-margin);
         }
+    }
+
+    code, pre {
+        overflow-wrap: anywhere;
+        white-space: break-spaces;
     }
 
     button {
