@@ -26,11 +26,10 @@ export default function usePromise<V, E>(cb: () => Promise<V>, deps: DependencyL
     cbRef.current = cb
 
     useEffect(() => {
-        if(counter.current > 0) {
-            setState(s => s.pending ? s : {...s, pending: true})
-        }
         const current = ++counter.current
         let abort = false
+
+        setState(s => s.pending ? s : {...s, pending: true})
 
         Promise.resolve(cbRef.current()).then(value => {
             if(abort) {
@@ -63,8 +62,6 @@ export default function usePromise<V, E>(cb: () => Promise<V>, deps: DependencyL
         })
 
         return () => {
-            // Change the nonce on unmount to prevent callbacks from running.
-            // If this is due to a dependency change, then the nonce will be changed a 2nd time.
             abort = true
         }
     }, deps)

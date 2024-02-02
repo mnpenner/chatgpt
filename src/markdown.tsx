@@ -104,13 +104,7 @@ type HighlightedCodeProps =  {
 }
 
 function HighlightedCode({code,language}: HighlightedCodeProps) {
-    // import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
-    // import dark from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'
-    //
-    // import rehypeKatex from 'rehype-katex'
-    // import remarkMath from 'remark-math'
-    // import 'katex/dist/katex.min.css' // `rehype-katex` does not import the CSS for you
-
+    // Import these on demand when they're first used. `react-syntax-highlighter` is kind of big.
     const promise = usePromise(() => Promise.all([
         import('react-syntax-highlighter'),
         import('react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus'),
