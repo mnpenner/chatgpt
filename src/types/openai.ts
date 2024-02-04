@@ -1,4 +1,5 @@
 import {EmptyObject, XOR} from './util-types.ts'
+import type OpenAI from 'openai'
 
 export type ChatDelta = {
     id: string;
@@ -23,9 +24,11 @@ export type Choice = {
 }>
 
 // https://platform.openai.com/docs/guides/text-generation/chat-completions-api
+// export type Message =  OpenAI.Chat.Completions.ChatCompletionMessage
+
 export type Message = {
     role: 'system' | 'user' | 'assistant';
-    content: string;
+    content: string|null;
 }
 
 export type Usage = {

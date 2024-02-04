@@ -94,6 +94,8 @@ export function getModelInfo(model: OpenAiModelId): OpenAiModelInfo|undefined {
     return OPENAI_PRICE_TABLE[OPENAI_MODEL_ALIASES[model] ?? model]
 }
 
+export const MODEL_W_FUNCS = '5db87e95-7302-4052-8ad3-cbd75bb6d109'
+
 export const MODEL_OPTIONS = (() => {
     const options: SelectOption<string>[]  = []
     for(const model of Object.keys(OPENAI_MODEL_ALIASES).sort()) {
@@ -119,6 +121,15 @@ export const MODEL_OPTIONS = (() => {
             value: model,
         })
     }
+    options.push({
+        text: '---',
+        disabled: true,
+        value: '',
+    })
+    options.push({
+        text: '3.5 w/ functions',
+        value: MODEL_W_FUNCS,
+    })
 
     return options
 })()
