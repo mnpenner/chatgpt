@@ -18,6 +18,7 @@ import {getModelInfo, MODEL_OPTIONS, OPENAI_MODEL_ALIASES, OpenAiModelId} from '
 import {UsageState} from './state/usage-state.ts'
 import React, {useRef} from 'react'
 import cc from 'classcat'
+import {Accordion, Drawer} from './accordion.tsx'
 
 
 const Page = withClass('div', css.page)
@@ -272,35 +273,41 @@ function SideBarContents() {
 
     return (
         <SideBar>
-            <div>
+            <div className={css.sidebarIndent}>
                 <button onClick={() => {
-                    ChatState.setState(fpObjSet('responses',new Map))
-                }}>New Chat</button>
+                    ChatState.setState(fpObjSet('responses', new Map))
+                }}>New Chat
+                </button>
                 {/*<button>Settings</button>*/}
             </div>
-            <div>
-                <label>
-                    <span>API Key</span>
-                    <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
-                </label>
-                <div>
-                    <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
-                    <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
-                </div>
-            </div>
-            <div>
-                <label>
-                    <span>Model</span>
-                    <Select options={MODEL_OPTIONS} value={state.model} onChange={modelChange} />
-                </label>
-                {state.model ? <ModelInfoTable model={state.model} /> : null}
-            </div>
-            <ShowUsage />
+
+            <Accordion>
+                <Drawer title="API Key">
+                    <label>
+                        <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
+                    </label>
+                    <div>
+                        <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
+                        {' | '}
+                        <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
+                    </div>
+                </Drawer>
+                <Drawer title="Model">
+                    <label>
+                        <Select options={MODEL_OPTIONS} value={state.model} onChange={modelChange} />
+                    </label>
+                    {state.model ? <ModelInfoTable model={state.model} /> : null}
+
+                </Drawer>
+                <Drawer title="Usage">
+                    <ShowUsage />
+                </Drawer>
+            </Accordion>
         </SideBar>
     )
 }
 
-function Price({value}: {value:number}) {
+function Price({value}: { value: number }) {
     return <data value={fullWide(value)}>{formatPrice(value)}</data>
 }
 
@@ -308,7 +315,6 @@ function ShowUsage() {
     const state = UsageState.useState()
     return (
         <div>
-            <h3>Usage</h3>
             <table>
                 <thead>
                     <tr>

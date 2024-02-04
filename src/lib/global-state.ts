@@ -1,10 +1,11 @@
 import {useSyncExternalStoreWithSelector} from 'use-sync-external-store/shim/with-selector'
 import {ExternalStore} from './external-store.ts'
 import {identity} from './misc'
-import React from 'react'
+import React, {useDebugValue} from 'react'
 import {AnyFn, AnyObject} from '../types/util-types.ts'
 import {Resolvable, Next, resolveValue} from './resolvable.ts'
 import {fpShallowMerge} from './fp.ts'
+import {varDump} from './debug.ts'
 
 
 interface SubscribeOptions<TState, TValue> {
@@ -24,7 +25,7 @@ export function createGlobalState<TState extends AnyObject>(initialState: TState
     function useState(): TState;
     function useState<TValue>(selector: Selector<TState, TValue>): TValue;
     function useState<TValue>(selector?: Selector<TState, TValue>) {
-        // useDebugValue(store.getSnapshot(), snapshot => select(snapshot))
+        useDebugValue(store.getSnapshot(), snapshot => snapshot)
         return useSyncExternalStoreWithSelector<TState, TValue>(store.subscribe, store.getSnapshot, store.getSnapshot, selector ?? identity as Selector<TState, TValue>, Object.is)
     }
 
