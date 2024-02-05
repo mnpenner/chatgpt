@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.2.0",
     "@mpen/imut-utils": "*",
     "@mpen/is-type": "*",
     "@mpen/react-basic-inputs": "0.1.9",

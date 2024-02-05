@@ -6,6 +6,7 @@ type ModelOptions = {
     modelCategory: string
     apiKey: string
     googleMapsKey: string
+    vertexAiKey: string
 }
 
 const KEY = '5ddf1280-ee98-42ad-bcb0-cf01a8d4bd79'
@@ -15,6 +16,7 @@ export const ModelState = createGlobalState<ModelOptions>({
     modelCategory: '',
     apiKey: '',
     googleMapsKey: '',
+    vertexAiKey: '',
     ...localStorageGetJson(KEY),
 })
 

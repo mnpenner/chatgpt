@@ -27,6 +27,7 @@ import {Accordion, Drawer} from './accordion.tsx'
 import OpenAI from 'openai'
 import {callTool, openaiTools} from './lib/openai-tools.ts'
 import {logJson} from './lib/debug.ts'
+import {GenerationConfig, SafetySetting} from '@google/generative-ai'
 
 
 const Page = withClass('div', css.page)
@@ -204,6 +205,12 @@ function getOpenAi() {
     });
 }
 
+async function getGoogGenAi() {
+    const apiKey = ModelState.getSnapshot().googleMapsKey
+    const {GoogleGenerativeAI} = await import('@google/generative-ai')
+    return new GoogleGenerativeAI(apiKey)
+}
+
 async function sendMessageWithFunctions(model: string, message: string)  {
     const openai = getOpenAi();
 
@@ -315,6 +322,42 @@ async function generateImage(model: string, prompt: string) {
     // })
 }
 
+async function googGenAiGo(modelName: string, message: string) {
+    appendMessage({
+        role: 'user',
+        content: message,
+    })
+
+    const genAi = await getGoogGenAi()
+    const model = genAi.getGenerativeModel({model: modelName})
+
+    const generationConfig: GenerationConfig = {
+        temperature: 0.9,
+        topK: 1,
+        topP: 1,
+        maxOutputTokens: 2048,
+    };
+
+    const safetySettings: SafetySetting[] = []
+
+    const parts = [
+        {text: message},
+    ];
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts }],
+        generationConfig,
+        safetySettings,
+    });
+
+    console.log('result',result)
+
+    appendMessage({
+        role: 'assistant',
+        content: result.response.text(),
+    })
+}
+
 function BottomForm() {
     const {register, handleSubmit, reset} = useForm<ChatMessageForm>({
         defaultValues: {
@@ -341,6 +384,9 @@ function BottomForm() {
             case 'openai-image':
                 generateImage(model, data.message)
                 break;
+            case 'vertex-ai':
+                googGenAiGo(model, data.message)
+                break
             default:
                 alert("Unimplemented")
                 break
@@ -449,16 +495,35 @@ function SideBarContents() {
                     <div>
                         <label>
                             <span>Google Maps</span>
-                            <TextInput value={state.googleMapsKey} onChange={ev => ModelState.setState(fpObjSet('googleMapsKey', ev.value))} className={css.apiKeyInput} />
+                            <TextInput value={state.googleMapsKey}
+                                onChange={ev => ModelState.setState(fpObjSet('googleMapsKey', ev.value))}
+                                className={css.apiKeyInput} />
                         </label>
                         <div>
-                            <ExternalLink href="https://console.cloud.google.com/google/maps-apis/credentials">Get Key</ExternalLink>
+                            <ExternalLink href="https://console.cloud.google.com/google/maps-apis/credentials">Get
+                                Key</ExternalLink>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label>
+                            <span>Vertex AI</span>
+                            <TextInput value={state.vertexAiKey}
+                                onChange={ev => ModelState.setState(fpObjSet('vertexAiKey', ev.value))}
+                                className={css.apiKeyInput} />
+                        </label>
+                        <div>
+                            <ExternalLink href="https://makersuite.google.com/app/apikey">Get
+                                Key</ExternalLink>
                         </div>
                     </div>
                 </Drawer>
                 <Drawer title="Model">
                     <div>
-                    <RadioMenu className={css.radioMenu} options={modelCategoryOptions} value={state.modelCategory} onChange={ev => ModelState.setState(fpObjSet('modelCategory', ev.value))}/>
+                        <RadioMenu className={css.radioMenu}
+                            options={modelCategoryOptions}
+                            value={state.modelCategory}
+                            onChange={ev => ModelState.setState(fpObjSet('modelCategory', ev.value))} />
                     </div>
 
                     {modelOptions ? <label>

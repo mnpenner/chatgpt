@@ -113,7 +113,7 @@ const MODEL_CATEGORIES = new Map<string,ModelCategory>([
     ['openai-chatgpt', {text: "OpenAI ChatGPT"}],
     ['openai-functions', {text: "ChatGPT w/ Functions"}],
     ['openai-image', {text: "OpenAI Image"}],
-    ['vertex-ai', {text: "Google Vertex AI", disabled: true}],
+    ['vertex-ai', {text: "Google Vertex AI"}],
 ])
 
 export const modelCategoryOptions = mapMap(MODEL_CATEGORIES, (val,key) => ({
@@ -172,5 +172,9 @@ export const SUB_OPTIONS = new Map([
     ['openai-image', [
         {value: 'dall-e-3', text: 'DALL·E 3'},
         {value: 'dall-e-2', text: 'DALL·E 2'},
+    ]],
+    ['vertex-ai', [
+        // https://ai.google.dev/models/gemini
+        {value: 'models/gemini-pro', text: 'Gemini Pro'},
     ]],
 ])
