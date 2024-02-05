@@ -514,7 +514,7 @@ function SideBarContents() {
                         </label>
                         <div>
                             <ExternalLink href="https://makersuite.google.com/app/apikey">Get
-                                Key</ExternalLink>
+                                Key</ExternalLink> | <ExternalLink href="https://cloud.google.com/vertex-ai/pricing">Pricing</ExternalLink> | <ExternalLink href="https://console.cloud.google.com/apis/api/aiplatform.googleapis.com/cost">Usage</ExternalLink>
                         </div>
                     </div>
                 </Drawer>
