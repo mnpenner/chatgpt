@@ -14,7 +14,7 @@
   "dependencies": {
     "@mpen/imut-utils": "*",
     "@mpen/is-type": "*",
-    "@mpen/react-basic-inputs": "^0.1.7",
+    "@mpen/react-basic-inputs": "0.1.9",
     "@sinclair/typebox": "^0.32.13",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "classcat": "^5.0.4",

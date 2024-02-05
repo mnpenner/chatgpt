@@ -345,5 +345,40 @@
     padding: .5em;
 }
 
+.radio-menu {
+    list-style: none;
+    padding: 0;
+    margin: .5em 0;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-wrap: wrap;
+
+    li {
+        display: inline-block;
+    }
+    input {
+        display: block;
+    }
+    label {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+
+        border-radius: .5em;
+        padding: .1em .4em;
+        &:has(input:disabled) {
+            color: #777;
+            cursor: not-allowed;
+        }
+        &:not(:has(input:disabled)) {
+            cursor: pointer;
+            &:hover {
+                background-color: #555555;
+            }
+        }
+    }
+}
+
 /*}*/
 

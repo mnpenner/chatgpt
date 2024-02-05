@@ -7,14 +7,19 @@ import {fullWide, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
-import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type TextAreaProps, type InputChangeEvent, type SelectChangeEvent} from '@mpen/react-basic-inputs'
+import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type TextAreaProps, type InputChangeEvent, type SelectChangeEvent, RadioMenu} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
 import {postSSE} from './lib/sse.ts'
 import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
-import {getModelInfo, MODEL_OPTIONS, MODEL_W_FUNCS, OPENAI_MODEL_ALIASES, OpenAiModelId} from './lib/openai-models.ts'
+import {
+    getModelInfo,
+    modelCategoryOptions,
+    OPENAI_MODEL_ALIASES,
+    OpenAiModelId, SUB_OPTIONS
+} from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
 import React, {useRef} from 'react'
 import cc from 'classcat'
@@ -192,11 +197,15 @@ function sendMessageLegacy(model: string, message: string) {
     })
 }
 
-async function sendMessageWithFunctions(message: string)  {
-    const openai = new OpenAI({
+function getOpenAi() {
+    return new OpenAI({
         apiKey: ModelState.getSnapshot().apiKey,
         dangerouslyAllowBrowser: true,
     });
+}
+
+async function sendMessageWithFunctions(model: string, message: string)  {
+    const openai = getOpenAi();
 
     const newUserMessage: Message = {
         role: 'user',
@@ -215,7 +224,7 @@ async function sendMessageWithFunctions(message: string)  {
 
 
     const response = await openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
+        model: model,
         messages: messages,
         tools: openaiTools,
         tool_choice: "auto", // auto is default, but we'll be explicit
@@ -263,6 +272,49 @@ async function sendMessageWithFunctions(message: string)  {
 }
 
 
+async function generateImage(model: string, prompt: string) {
+    const openai = getOpenAi();
+
+    appendMessage({
+        role: 'user',
+        content: prompt,
+    })
+
+    try {
+        const response = await openai.images.generate({
+            model: model,
+            prompt: prompt,
+            n: 1,
+            size: "1024x1024",
+        });
+
+        const responseContent = response.data.map(item => `![${prompt}](${item.url})`).join('\n')
+
+        appendMessage({
+            role: 'assistant',
+            content: responseContent,
+        })
+    } catch(err) {
+        appendMessage({
+            role: 'assistant',
+            content: String(err),
+        })
+    }
+
+
+
+    // ChatState.setState(fpObjSet('responses', fpMapSet(id, msg => ({
+    //     role: 'assistant',
+    //     ...msg,
+    //     content: response.data.map(item => `![${prompt}](${item.url})`).join('\n'),
+    // }))))
+
+    // appendMessage({
+    //     role: 'assistant',
+    //     content: response.data.map(item => `![${prompt}](${item.url})`).join('\n'),
+    // })
+}
+
 function BottomForm() {
     const {register, handleSubmit, reset} = useForm<ChatMessageForm>({
         defaultValues: {
@@ -274,14 +326,24 @@ function BottomForm() {
 
     const onSubmit = useEvent<ChatMessageForm>(data => {
         const model = ModelState.getSnapshot().model
+        const category = ModelState.getSnapshot().modelCategory
 
         reset()
         taRef.current?.adjustHeight()
 
-        if(model === MODEL_W_FUNCS) {
-            sendMessageWithFunctions(data.message)
-        } else {
-            sendMessageLegacy(model, data.message)
+        switch(category) {
+            case 'openai-chatgpt':
+                sendMessageLegacy(model, data.message)
+                break;
+            case 'openai-functions':
+                sendMessageWithFunctions(model, data.message)
+                break;
+            case 'openai-image':
+                generateImage(model, data.message)
+                break;
+            default:
+                alert("Unimplemented")
+                break
         }
     })
 
@@ -359,6 +421,8 @@ function SideBarContents() {
         ModelState.setState(fpObjSet('model', ev.value))
     })
 
+    const modelOptions = SUB_OPTIONS.get(state.modelCategory)
+
     return (
         <SideBar>
             <div className={css.sidebarIndent}>
@@ -370,20 +434,36 @@ function SideBarContents() {
             </div>
 
             <Accordion>
-                <Drawer title="API Key">
-                    <label>
-                        <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
-                    </label>
+                <Drawer title="API Keys">
                     <div>
-                        <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
-                        {' | '}
-                        <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
+                        <label>
+                            <span>Open AI</span>
+                            <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
+                        </label>
+                        <div>
+                            <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
+                            {' | '}
+                            <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
+                        </div>
+                    </div>
+                    <div>
+                        <label>
+                            <span>Google Maps</span>
+                            <TextInput value={state.googleMapsKey} onChange={ev => ModelState.setState(fpObjSet('googleMapsKey', ev.value))} className={css.apiKeyInput} />
+                        </label>
+                        <div>
+                            <ExternalLink href="https://console.cloud.google.com/google/maps-apis/credentials">Get Key</ExternalLink>
+                        </div>
                     </div>
                 </Drawer>
                 <Drawer title="Model">
-                    <label>
-                        <Select options={MODEL_OPTIONS} value={state.model} onChange={modelChange} />
-                    </label>
+                    <div>
+                    <RadioMenu className={css.radioMenu} options={modelCategoryOptions} value={state.modelCategory} onChange={ev => ModelState.setState(fpObjSet('modelCategory', ev.value))}/>
+                    </div>
+
+                    {modelOptions ? <label>
+                        <Select options={modelOptions} value={state.model} onChange={modelChange} />
+                    </label> : null}
                     {state.model ? <ModelInfoTable model={state.model} /> : null}
 
                 </Drawer>

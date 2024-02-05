@@ -2,6 +2,8 @@
 // https://platform.openai.com/docs/models/overview
 
 
+import {mapMap, mapObj} from './collection.ts'
+
 export type OpenAiModelId = string|import('js-tiktoken').TiktokenModel
 import type {SelectOption} from '@mpen/react-basic-inputs'
 
@@ -14,6 +16,10 @@ export type OpenAiModelInfo = {
     aliases: OpenAiModelId[]
     legacy?: boolean
     recommended?: string
+    /**
+     * @see https://platform.openai.com/docs/guides/function-calling
+     */
+    supportsFunctions?: boolean
 }
 
 export const OPENAI_MODEL_ALIASES: Record<OpenAiModelId,OpenAiModelId> = {
@@ -30,6 +36,7 @@ const OPENAI_PRICE_TABLE = (() => {
             input: 0.01,
             output: 0.03,
             contextWindow: 128_000,
+            supportsFunctions: true,
         },
         'gpt-4-1106-preview' : {
             input: 0.01,
@@ -68,6 +75,7 @@ const OPENAI_PRICE_TABLE = (() => {
             contextWindow: 4_096,
             legacy: true,
             recommended: 'gpt-3.5-turbo-1106',
+            supportsFunctions: true,
         },
         'gpt-3.5-turbo-16k-0613' : {
             input: 0.0030,
@@ -96,6 +104,24 @@ export function getModelInfo(model: OpenAiModelId): OpenAiModelInfo|undefined {
 
 export const MODEL_W_FUNCS = '5db87e95-7302-4052-8ad3-cbd75bb6d109'
 
+type ModelCategory = {
+    text: string,
+    disabled?: boolean
+}
+
+const MODEL_CATEGORIES = new Map<string,ModelCategory>([
+    ['openai-chatgpt', {text: "OpenAI ChatGPT"}],
+    ['openai-functions', {text: "ChatGPT w/ Functions"}],
+    ['openai-image', {text: "OpenAI Image"}],
+    ['vertex-ai', {text: "Google Vertex AI", disabled: true}],
+])
+
+export const modelCategoryOptions = mapMap(MODEL_CATEGORIES, (val,key) => ({
+    text: val.text,
+    disabled: val.disabled,
+    value: key,
+}))
+
 export const MODEL_OPTIONS = (() => {
     const options: SelectOption<string>[]  = []
     for(const model of Object.keys(OPENAI_MODEL_ALIASES).sort()) {
@@ -121,15 +147,30 @@ export const MODEL_OPTIONS = (() => {
             value: model,
         })
     }
-    options.push({
-        text: '---',
-        disabled: true,
-        value: '',
-    })
-    options.push({
-        text: '3.5 w/ functions',
-        value: MODEL_W_FUNCS,
-    })
+    // options.push({
+    //     text: '---',
+    //     disabled: true,
+    //     value: '',
+    // })
+    // options.push({
+    //     text: '3.5 w/ functions',
+    //     value: MODEL_W_FUNCS,
+    // })
 
     return options
 })()
+
+export const SUB_OPTIONS = new Map([
+    ['openai-chatgpt', MODEL_OPTIONS],
+    ['openai-functions', Array.from(Object.entries(OPENAI_PRICE_TABLE)).filter(([key,val]) => val.supportsFunctions).map(([key,val]) => ({
+        text: key,
+        value: key,
+    }))],
+    // ['openai-functions', [
+    //     {value: MODEL_W_FUNCS, text: 'Dunno'},
+    // ]],
+    ['openai-image', [
+        {value: 'dall-e-3', text: 'DALL·E 3'},
+        {value: 'dall-e-2', text: 'DALL·E 2'},
+    ]],
+])
