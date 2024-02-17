@@ -1,4 +1,4 @@
-import React, {RefCallback} from 'react'
+import React, {Ref, RefCallback, RefObject} from 'react'
 
 export function getComponentName(Component: React.ElementType): string {
     if(typeof Component === 'string') {
@@ -14,4 +14,8 @@ export function onRef<T extends HTMLElement>(fn: (el:T)=>void): RefCallback<T> {
             fn(el)
         }
     }
+}
+
+export function refContains<T extends Node>(ref: RefObject<T>, el: Node) {
+    return ref.current != null && ref.current.contains(el)
 }

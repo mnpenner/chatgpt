@@ -21,7 +21,7 @@ import {
     OpenAiModelId, SUB_OPTIONS
 } from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-import React, {useRef} from 'react'
+import React, {useEffect, useRef} from 'react'
 import cc from 'classcat'
 import {Accordion, Drawer} from './accordion.tsx'
 import OpenAI from 'openai'
@@ -29,6 +29,8 @@ import {callTool, openaiTools} from './lib/openai-tools.ts'
 import {logJson} from './lib/debug.ts'
 import type {GenerationConfig, SafetySetting} from '@google/generative-ai'
 import {SidebarState} from './state/sidebar-state.ts'
+import {useEventListener} from './hooks/useEventListener.ts'
+import {refContains} from './lib/react.ts'
 
 
 const Page = withClass('div', css.page)
@@ -471,8 +473,38 @@ function SideBarContents() {
 
     const modelOptions = SUB_OPTIONS.get(state.modelCategory)
 
+    const sidebarRef = useRef<HTMLDivElement>(null)
+    const floaterRef = useRef<HTMLDivElement>(null)
+
+    useEventListener(document.body, 'mousedown', el => {
+        if(window.innerWidth > 799) return // must match chat.module.css floaty thing
+        const clicked = el.target as HTMLElement
+        // console.log(sidebarRef.current?.contains(clicked), refContains(floaterRef,clicked))
+        if(refContains(sidebarRef,clicked) || refContains(floaterRef,clicked)) return
+
+        // console.log(clicked,sidebarRef.current,floaterRef.current,clicked.contains(floaterRef.current))
+        // if(clicked.contains(sidebarRef.current) || clicked.contains(floaterRef.current)) return
+
+        // if(el.target.con)
+        SidebarState.setState(fpObjSet('open', false))
+    })
+
+    const sideBarOpen = SidebarState.useState(s => s.open)
+
+    if(!sideBarOpen) {
+        return (
+            <div className={css.floater} ref={floaterRef}>
+                <button onClick={() => {
+                    SidebarState.setState(fpObjSet('open', true))
+                }}>=
+                </button>
+            </div>
+        )
+    }
+
+
     return (
-        <SideBar>
+        <div className={css.sidebar} ref={sidebarRef}>
             <div className={css.sidebarIndent}>
                 <div className={css.spaceBetween}>
                     <div>
@@ -550,7 +582,7 @@ function SideBarContents() {
                     <ShowUsage />
                 </Drawer>
             </Accordion>
-        </SideBar>
+        </div>
     )
 }
 
@@ -634,7 +666,7 @@ export default function App() {
     return (
         <Page>
             <ChatContents />
-            {sideBarOpen ? <SideBarContents /> : <Floater/>}
+            <SideBarContents />
         </Page>
     )
 }

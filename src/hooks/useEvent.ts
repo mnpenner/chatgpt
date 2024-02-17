@@ -4,7 +4,6 @@ import {AnyFn, AnyObject, EventCallback} from '../types/util-types.ts'
 import {NOOP} from '../lib/constants.ts'
 
 
-
 /**
  * Similar to useCallback, with a few subtle differences:
  * - The returned function is a stable reference, and will always be the same between renders
@@ -12,26 +11,16 @@ import {NOOP} from '../lib/constants.ts'
  * - Properties or state accessed within the callback will always be "current"
  */
 export default function useEventHandler<TCallback extends AnyFn>(callback: TCallback): TCallback {
-    // Keep track of the latest callback:
-    const latestRef = useRef<TCallback>(import.meta.env.DEV ? useEvent_shouldNotBeInvokedBeforeMount : NOOP as any)
-    useInsertionEffect(() => {
-        latestRef.current = callback
-    }, [callback])
+    const latestRef = useRef(callback)
+    latestRef.current = callback
 
-    // Create a stable callback that always calls the latest callback:
-    // using useRef instead of useCallback avoids creating and empty array on every render
-    const stableRef = useRef<TCallback>(null as any)
-    if(!stableRef.current) {
-        stableRef.current = function(this: any) {
-            return latestRef.current.apply(this, arguments as any)
-        } as TCallback
-    }
-
-    return stableRef.current
+    return useRef(function(this: any) {
+        return latestRef.current.apply(this, arguments as any)
+    } as TCallback).current
 }
 
 export function useEvent<T>(handler: EventCallback<T>) {
-    return useEventHandler(handler);
+    return useEventHandler(handler)
 }
 
 /**
