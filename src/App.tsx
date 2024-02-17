@@ -27,7 +27,8 @@ import {Accordion, Drawer} from './accordion.tsx'
 import OpenAI from 'openai'
 import {callTool, openaiTools} from './lib/openai-tools.ts'
 import {logJson} from './lib/debug.ts'
-import {GenerationConfig, SafetySetting} from '@google/generative-ai'
+import type {GenerationConfig, SafetySetting} from '@google/generative-ai'
+import {SidebarState} from './state/sidebar-state.ts'
 
 
 const Page = withClass('div', css.page)
@@ -344,6 +345,7 @@ async function googGenAiGo(modelName: string, message: string) {
         {text: message},
     ];
 
+    // TODO: switch to startChat (https://makersuite.google.com/app/prompts/new_chat)
     const result = await model.generateContent({
         contents: [{ role: "user", parts }],
         generationConfig,
@@ -472,17 +474,28 @@ function SideBarContents() {
     return (
         <SideBar>
             <div className={css.sidebarIndent}>
-                <button onClick={() => {
-                    ChatState.setState(fpObjSet('responses', new Map))
-                }}>New Chat
-                </button>
+                <div className={css.spaceBetween}>
+                    <div>
+                        <button onClick={() => {
+                            ChatState.setState(fpObjSet('responses', new Map))
+                        }}>New Chat
+                        </button>
+                    </div>
+                    <div>
+                        <button onClick={() => {
+                           SidebarState.setState(fpObjSet('open', false))
+                        }}>&lt;
+                        </button>
+                    </div>
+                </div>
+
                 {/*<button>Settings</button>*/}
             </div>
 
             <Accordion>
                 <Drawer title="API Keys">
                     <div>
-                        <label>
+                    <label>
                             <span>Open AI</span>
                             <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
                         </label>
@@ -602,13 +615,25 @@ function ModelInfoTable({model}: ModelInfoTableProps) {
     )
 }
 
+function Floater() {
+    return (
+        <div className={css.floater}>
+            <button onClick={() => {
+                SidebarState.setState(fpObjSet('open', true))
+            }}>=
+            </button>
+        </div>
+    )
+}
+
 export default function App() {
 
+    const sideBarOpen = SidebarState.useState(s => s.open)
 
     return (
         <Page>
-            <SideBarContents />
             <ChatContents />
+            {sideBarOpen ? <SideBarContents /> : <Floater/>}
         </Page>
     )
 }
