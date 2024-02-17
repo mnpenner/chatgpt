@@ -9,7 +9,7 @@
 }
 
 .indent {
-    --gutter: 1rem;
+    --gutter: .5rem;
     width: min(960px, 100% - 2 * var(--gutter));
     margin-inline: auto;
 }
@@ -68,13 +68,14 @@
 }
 
 .bottom-bar {
+    padding-block: .1rem;
     background-color: #2C2C2C;
     border-top: 1px solid #262626;
 }
 
 .chat-bar {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 4px;
 }
 
@@ -87,6 +88,8 @@
 
 .flex1 {
     flex: 1;
+    display: flex;
+    align-items: center;
 }
 
 .floater {
@@ -162,7 +165,7 @@
     background-color: #454545;
     border: 1px solid #262626;
     border-radius: 5px;
-    padding: .3em .5em;
+    padding: .4em .6em;
     display: block;
     /*color: var(--color-fg);*/
 
@@ -172,7 +175,7 @@
 }
 
 .image-button {
-    height: 32px;
+    /*height: 32px;*/
     border: none;
     cursor: pointer;
     display: flex;
@@ -186,7 +189,7 @@
     background: none;
 
     svg {
-        /*height: 50px;*/
+        height: 24px;
         will-change: filter;
         transition: filter 200ms;
     }
