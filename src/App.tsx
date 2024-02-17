@@ -477,16 +477,17 @@ function SideBarContents() {
                 <div className={css.spaceBetween}>
                     <div>
                         <button onClick={() => {
-                            ChatState.setState(fpObjSet('responses', new Map))
-                        }}>New Chat
+                            SidebarState.setState(fpObjSet('open', false))
+                        }}>&lt;
                         </button>
                     </div>
                     <div>
                         <button onClick={() => {
-                           SidebarState.setState(fpObjSet('open', false))
-                        }}>&lt;
+                            ChatState.setState(fpObjSet('responses', new Map))
+                        }}>New Chat
                         </button>
                     </div>
+
                 </div>
 
                 {/*<button>Settings</button>*/}
@@ -495,7 +496,7 @@ function SideBarContents() {
             <Accordion>
                 <Drawer title="API Keys">
                     <div>
-                    <label>
+                        <label>
                             <span>Open AI</span>
                             <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
                         </label>

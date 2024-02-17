@@ -8,5 +8,6 @@
 - [x] Show token size of each output in the chat box
 - [ ] Math https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use-remark-and-rehype-plugins-math
 - [ ] Use Assistants API to carry a convo https://platform.openai.com/docs/assistants/overview
-- [ ] multi-line text input
+- [x] multi-line text input
   - [ ] setting to toggle Enter to send or Shift+enter
+- [ ] click outside floating sidebar to close

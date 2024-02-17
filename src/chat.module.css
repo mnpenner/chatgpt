@@ -103,7 +103,7 @@
 
     @media only screen and (max-width: 799px) {
         position: fixed;
-        width: max(300px, 100vw - 20px));
+        width: min(300px, 100vw - 10px);
         left: 0;
         top: 0;
         box-shadow: 5px 5px 8px 0 rgba(0, 0, 0, 0.5);
@@ -344,7 +344,26 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    gap: 5px;
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
 }
+
+.chevron {
+    height: .6em;
+    width: .6em;
+    color: #a1a1a1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: transform 150ms ease-out;
+    .drawer-open & {
+        transform: rotate(90deg);
+    }
+}
+
 
 .drawer-title {
     background-color: #333;
@@ -352,8 +371,14 @@
     cursor: pointer;
     padding: .5em 1em;
     border-top: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     &:hover {
         background-color: #555;
+        .chevron {
+            color: white;
+        }
     }
 }
 
@@ -362,9 +387,27 @@
     background-color: #555;
 }
 
+
+
 .drawer-contents {
     padding: .5em;
+
 }
+
+.drawer-wrap {
+    overflow: clip;
+    height: 0;
+    transition: height 200ms ease-out;
+}
+
+/*@keyframes slideDown {*/
+/*    from {*/
+/*        max-height: 0;*/
+/*    }*/
+/*    to {*/
+/*        max-height: 400px;*/
+/*    }*/
+/*}*/
 
 .radio-menu {
     list-style: none;
