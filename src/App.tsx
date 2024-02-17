@@ -31,6 +31,7 @@ import type {GenerationConfig, SafetySetting} from '@google/generative-ai'
 import {SidebarState} from './state/sidebar-state.ts'
 import {useEventListener} from './hooks/useEventListener.ts'
 import {refContains} from './lib/react.ts'
+import {useNullRef} from './hooks/useNullRef.ts'
 
 
 const Page = withClass('div', css.page)
@@ -473,8 +474,8 @@ function SideBarContents() {
 
     const modelOptions = SUB_OPTIONS.get(state.modelCategory)
 
-    const sidebarRef = useRef<HTMLDivElement>(null)
-    const floaterRef = useRef<HTMLDivElement>(null)
+    const sidebarRef = useNullRef<HTMLDivElement>()
+    const floaterRef = useNullRef<HTMLDivElement>()
 
     useEventListener(document.body, 'mousedown', el => {
         if(window.innerWidth > 799) return // must match chat.module.css floaty thing
