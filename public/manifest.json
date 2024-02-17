@@ -1,0 +1,14 @@
+{
+    "short_name": "AI Amigo",
+    "name": "AI Amigo",
+    "icons": [
+        {
+            "src": "icon64.png",
+            "type": "image/png",
+            "sizes": "64x64"
+        }
+    ],
+    "display": "standalone",
+    "theme_color": "#FFFFFF",
+    "background_color": "#0B141A"
+}
