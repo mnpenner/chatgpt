@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useEffect, useId, useState} from 'react'
 import {AccordionState} from './state/accordion-state.ts'
 import {useEvent} from './hooks/useEvent.ts'
-import {fpMapSet,fpMapDelete} from '@mpen/imut-utils'
+import {fpMapSet,fpMapDelete,fpMapUpdate} from '@mpen/imut-utils'
 import css from './chat.module.css'
 import cc from 'classcat'
 import {useStableId} from './hooks/useStableId.ts'
@@ -15,6 +15,7 @@ import {addEventListener, addOnceListener} from './hooks/useEventListener.ts'
 export type DrawerProps = {
     children: React.ReactNode
     title: string
+    drawerId?: string
 }
 
 type TAccordionContext = string
@@ -101,12 +102,13 @@ function ScrollHeightDiv({isOpen, children}: {isOpen: boolean, children: React.R
     return <div className={css.drawerWrap} ref={div} hidden={isClosed}>{children}</div>
 }
 
-export function Drawer({children,title}: DrawerProps) {
-    const drawerId = useId()
+export function Drawer({drawerId,children,title}: DrawerProps) {
+    const fallbackId = useId()
+    const finalId = drawerId ?? fallbackId
     const accordionId = useContext(AccordionContext) ?? ''
-    const isOpen = AccordionState.useState(m => m.get(accordionId)) === drawerId
+    const isOpen = AccordionState.useState(m => m.get(accordionId)) === finalId
     const click = useEvent(() => {
-        AccordionState.setState(fpMapSet(accordionId,id => id === drawerId ? '' : drawerId))
+        AccordionState.setState(fpMapSet(accordionId,id => id === finalId ? '' : finalId))
     })
     return (
         <div>

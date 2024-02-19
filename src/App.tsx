@@ -550,7 +550,26 @@ function SideBarContents() {
             </div>
 
             <Accordion>
-                <Drawer title="API Keys">
+                <Drawer title="Model" drawerId="model">
+                    <div>
+                        <RadioMenu className={css.radioMenu}
+                            options={modelCategoryOptions}
+                            value={state.modelCategory}
+                            onChange={ev => ModelState.setState(fpObjSet('modelCategory', ev.value))} />
+                    </div>
+
+                    {modelOptions ? <label>
+                        <Select options={modelOptions} value={state.model} onChange={modelChange} />
+                    </label> : null}
+                    {state.model ? <ModelInfoTable model={state.model} /> : null}
+
+                </Drawer>
+
+                <Drawer title="Usage" drawerId="usage">
+                    <ShowUsage />
+                </Drawer>
+
+                <Drawer title="API Keys" drawerId="api-keys">
                     <div>
                         <label className={css.labelWithInput}>
                             <span>Open AI</span>
@@ -589,23 +608,6 @@ function SideBarContents() {
                                 Key</ExternalLink>
                         </div>
                     </div>
-                </Drawer>
-                <Drawer title="Model">
-                    <div>
-                        <RadioMenu className={css.radioMenu}
-                            options={modelCategoryOptions}
-                            value={state.modelCategory}
-                            onChange={ev => ModelState.setState(fpObjSet('modelCategory', ev.value))} />
-                    </div>
-
-                    {modelOptions ? <label>
-                        <Select options={modelOptions} value={state.model} onChange={modelChange} />
-                    </label> : null}
-                    {state.model ? <ModelInfoTable model={state.model} /> : null}
-
-                </Drawer>
-                <Drawer title="Usage">
-                    <ShowUsage />
                 </Drawer>
             </Accordion>
         </div>
