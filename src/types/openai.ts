@@ -26,6 +26,12 @@ export type Choice = {
 // https://platform.openai.com/docs/guides/text-generation/chat-completions-api
 // export type Message =  OpenAI.Chat.Completions.ChatCompletionMessage
 
+export const enum Role {
+    System = 'system',
+    User = 'user',
+    Assistant = 'assistant',
+}
+
 export type Message = {
     role: 'system' | 'user' | 'assistant';
     content: string|null;

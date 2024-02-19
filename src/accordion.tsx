@@ -31,7 +31,7 @@ function setScrollHeight(el: HTMLDivElement|null) {
     el.style.height = `${el.scrollHeight}px`
 }
 
-const OPEN_SPEED = 2000  // px per sec
+const OPEN_SPEED = 1500  // px per sec
 
 function ScrollHeightDiv_({isOpen, children}: {isOpen: boolean, children: React.ReactNode}) {
     // const [height,setHeight] = useState('')
@@ -55,27 +55,23 @@ function ScrollHeightDiv_({isOpen, children}: {isOpen: boolean, children: React.
     return <div className={css.drawerWrap} ref={setRef}>{children}</div>
 }
 
-enum OpenState {
-    Transitioning,
-    Open,
-    Closed,
-}
-
 function ScrollHeightDiv({isOpen, children}: {isOpen: boolean, children: React.ReactNode}) {
     // const [open,setOpen] = useState(isOpen)
     const div = useNullRef<HTMLDivElement>()
-    const [state,setState] = useState<OpenState>(isOpen ? OpenState.Open : OpenState.Closed)
+    const [isClosed,setIsClosed] = useState<boolean>(!isOpen)
 
     useUpdateEffect(() => {
         const el = div.current
         if(el == null) return
         // console.log(el,isOpen)
         // console.log(el.offsetHeight,el.clientHeight,el.scrollHeight)
-        setState(OpenState.Transitioning)
         if(isOpen) {
+            setIsClosed(false)
             if(el.hidden) {
                 el.style.height = '0'
                 el.hidden = false
+            } else {
+                el.style.height = `${el.clientHeight}px`
             }
             // console.log(`${(el.scrollHeight-el.clientHeight)/OPEN_SPEED}s`)
             Object.assign(el.style, {
@@ -84,7 +80,6 @@ function ScrollHeightDiv({isOpen, children}: {isOpen: boolean, children: React.R
                 transitionDuration: `${(el.scrollHeight-el.clientHeight)/OPEN_SPEED}s`,
             })
             return addOnceListener(el, 'transitionend', () => {
-                setState(OpenState.Open)
                 el.removeAttribute('style')
             })
         } else {
@@ -97,13 +92,13 @@ function ScrollHeightDiv({isOpen, children}: {isOpen: boolean, children: React.R
             })
             return addOnceListener(el, 'transitionend', () => {
                 el.hidden = true
-                setState(OpenState.Closed)
+                setIsClosed(true)
                 el.removeAttribute('style')
             })
         }
     }, [isOpen])
 
-    return <div className={css.drawerWrap} ref={div} hidden={state === OpenState.Closed}>{children}</div>
+    return <div className={css.drawerWrap} ref={div} hidden={isClosed}>{children}</div>
 }
 
 export function Drawer({children,title}: DrawerProps) {

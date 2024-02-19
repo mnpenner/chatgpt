@@ -2,16 +2,26 @@ import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
 import {ChatState, ResponseMessage} from './state/chat-state.ts'
-import {fpMapSet, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
+import {fpMapSet, fpObjSet, fpShallowMerge,fpMapUpdate} from '@mpen/imut-utils'
 import {fullWide, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
-import {Select, TextInput, TextArea as _TextArea,type TextAreaRef, type TextAreaProps, type InputChangeEvent, type SelectChangeEvent, RadioMenu} from '@mpen/react-basic-inputs'
+import NewChatIcon from './assets/comment-medical.svg?react'
+import {
+    Select,
+    TextInput,
+    TextArea as _TextArea,
+    type TextAreaRef,
+    type TextAreaProps,
+    type InputChangeEvent,
+    type SelectChangeEvent,
+    RadioMenu
+} from '@mpen/react-basic-inputs'
 import {ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-options.ts'
 import {postSSE} from './lib/sse.ts'
-import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message} from './types/openai.ts'
+import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message, Role} from './types/openai.ts'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {
@@ -21,7 +31,7 @@ import {
     OpenAiModelId, SUB_OPTIONS
 } from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-import React, {useEffect, useRef} from 'react'
+import React, {useEffect, useRef, FC} from 'react'
 import cc from 'classcat'
 import {Accordion, Drawer} from './accordion.tsx'
 import OpenAI from 'openai'
@@ -32,6 +42,7 @@ import {SidebarState} from './state/sidebar-state.ts'
 import {useEventListener} from './hooks/useEventListener.ts'
 import {refContains} from './lib/react.ts'
 import {useNullRef} from './hooks/useNullRef.ts'
+import {IconButton} from './button.tsx'
 
 
 const Page = withClass('div', css.page)
@@ -39,56 +50,67 @@ const Indent = withClass('div', css.indent)
 const TopBar = withClass('div', css.topBar)
 const BottomBar = withClass('div', css.bottomBar)
 const ChatStack = withClass('div', css.chatStack)
-const ChatBar = withClass('div', css.chatBar)
 const ChatBubble = withClass('div', css.chatBubble)
-const SideBar = withClass('div', css.sidebar)
-const AutoTextArea = withClass<TextAreaProps,TextAreaRef>(_TextArea, css.autosizeTextarea)
+const AutoTextArea = withClass<TextAreaProps, TextAreaRef>(_TextArea, css.autosizeTextarea)
 
 type ChatMessageForm = {
     message: string
 }
 
-function RenderMessage({message:message,id:id}: {id:string,message:ResponseMessage}) {
+const TypingDots:FC = () => <span className={css.jumpingDots}>
+    <span className={cc([css.jumpingDot,css.dot1])}>.</span>
+    <span className={cc([css.jumpingDot,css.dot2])}>.</span>
+    <span className={cc([css.jumpingDot,css.dot3])}>.</span>
+</span>
+
+function RenderMessage({message: message, id: id}: { id: string, message: ResponseMessage }) {
 
     return (
-        <ChatBubble className={message.role === 'user' ? css.user : css.assistant}>
+        <div className={cc([css.chatMessageContainer, message.role === 'user' ? css.user : css.assistant])}>
             <div className={css.chatNameRow}>
-                <span className={css.chatRole}>{message.role}</span>
+                <span className={css.chatRole}>{message.role === Role.User ? "You" : "Amigo"}</span>
                 <span className={css.chatRowOptions}>
-                            {message.tokenCount != null ? <span className={css.chatTokenCount}><data value={fullWide(message.tokenCount)}>{formatNumber(message.tokenCount)}</data> tokens</span> : null}
+                        {message.tokenCount != null
+                            ? <span className={css.chatTokenCount}><data value={fullWide(message.tokenCount)}>{formatNumber(message.tokenCount)}</data> tokens</span>
+                            : null
+                        }
                     <label><input type="checkbox" checked={!!message.rawMarkdown} onChange={() => {
-                        ChatState.setState(fpObjSet('responses',fpMapSet(id,fpObjSet('rawMarkdown',b => !b))))
+                        ChatState.setState(fpObjSet('responses', fpMapUpdate(id, fpObjSet('rawMarkdown', b => !b))))
                     }} /> Raw</label>
-                        </span>
+                    </span>
             </div>
-            <div>
-                {message.rawMarkdown ? <pre>{message.content}</pre> : <Markdown>{message.content}</Markdown>}
-
+            <div className={cc([css.chatBubble])}>
+                <div>
+                    {message.rawMarkdown ? <pre>{message.content}</pre> : <Markdown>{message.content}</Markdown>}
+                </div>
             </div>
-        </ChatBubble>
+        </div>
     )
 }
 
 function MessageList() {
     const messages = Array.from(ChatState.useState(s => s.responses))
 
-    const idx = messages.findLastIndex(([_,msg]) => msg.role === 'user')
-
+    const idx = messages.findLastIndex(([_, msg]) => msg.role === 'user')
 
 
     // last index of res.role === user
 
     return (
-        <div className={css.chatList}>
+        <>
             {idx === -1
-                ? messages.map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>) : <>
-
-                {messages.slice(0,idx).map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>)}
-                <div className={cc([css.lastUserMessage,css.chatList])}>
-                    {messages.slice(idx).map(([id,msg]) => <RenderMessage key={id} id={id} message={msg}/>)}
-                </div>
-            </>}
-        </div>
+                ? <div className={css.chatList}>{messages.map(([id, msg]) => <RenderMessage key={id}
+                    id={id}
+                    message={msg} />)}</div> :
+                <>
+                    <div className={css.chatList}>{messages.slice(0, idx).map(([id, msg]) => <RenderMessage key={id}
+                        id={id}
+                        message={msg} />)}</div>
+                    <div className={cc([css.lastUserMessage, css.chatList])}>
+                        {messages.slice(idx).map(([id, msg]) => <RenderMessage key={id} id={id} message={msg} />)}
+                    </div>
+                </>}
+        </>
     )
 }
 
@@ -113,7 +135,7 @@ function sendMessageLegacy(model: string, message: string) {
             role: 'system',
             content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks. Write formulas, math equations and symbols using `remark-math` syntax. Large formulas should go on their own line, separated with $$ on either side; e.g.\n\n$$\nL = \\frac{1}{2} \\rho v^2 S C_L\n$$\n\nMath symbols should be written with a single $ on either side, e.g. $C_L$"
         },
-        ...mapMap(ChatState.getSnapshot().responses, ({role,content}) => ({role,content})),
+        ...mapMap(ChatState.getSnapshot().responses, ({role, content}) => ({role, content})),
         newUserMessage,
     ]
 
@@ -139,7 +161,7 @@ function sendMessageLegacy(model: string, message: string) {
         const encoder = encodingForModel(model as TiktokenModel)
         // const tokensUsed = encoder.encode(data.message).length
 
-        const totalInputTokens = sendMessages.reduce((previousValue,currentValue) => {
+        const totalInputTokens = sendMessages.reduce((previousValue, currentValue) => {
             return previousValue + encoder.encode(currentValue.content).length
         }, 0)
 
@@ -206,7 +228,7 @@ function getOpenAi() {
     return new OpenAI({
         apiKey: ModelState.getSnapshot().apiKey,
         dangerouslyAllowBrowser: true,
-    });
+    })
 }
 
 async function getGoogGenAi() {
@@ -215,8 +237,8 @@ async function getGoogGenAi() {
     return new GoogleGenerativeAI(apiKey)
 }
 
-async function sendMessageWithFunctions(model: string, message: string)  {
-    const openai = getOpenAi();
+async function sendMessageWithFunctions(model: string, message: string) {
+    const openai = getOpenAi()
 
     const newUserMessage: Message = {
         role: 'user',
@@ -239,11 +261,11 @@ async function sendMessageWithFunctions(model: string, message: string)  {
         messages: messages,
         tools: openaiTools,
         tool_choice: "auto", // auto is default, but we'll be explicit
-    });
+    })
 
     // logJson(response)
 
-    const responseMessage = response.choices[0].message;
+    const responseMessage = response.choices[0].message
     // logJson(responseMessage)
 
     messages.push(responseMessage)
@@ -259,7 +281,7 @@ async function sendMessageWithFunctions(model: string, message: string)  {
 
         const toolResults = await Promise.all(responseMessage.tool_calls.map(tc => callTool(tc)))
 
-        for(let i=0; i<toolResults.length; ++i) {
+        for(let i = 0; i < toolResults.length; ++i) {
             ChatState.setState(fpObjSet('responses', fpMapSet(toolMsgs[i], msg => ({
                 role: 'assistant',
                 ...msg,
@@ -273,9 +295,9 @@ async function sendMessageWithFunctions(model: string, message: string)  {
         const secondResponse = await openai.chat.completions.create({
             model: "gpt-3.5-turbo-0125",
             messages: messages,
-        });
+        })
 
-        const secondMessage = secondResponse.choices[0].message;
+        const secondMessage = secondResponse.choices[0].message
         appendMessage(secondMessage)
     } else {
         appendMessage(responseMessage)
@@ -284,7 +306,7 @@ async function sendMessageWithFunctions(model: string, message: string)  {
 
 
 async function generateImage(model: string, prompt: string) {
-    const openai = getOpenAi();
+    const openai = getOpenAi()
 
     appendMessage({
         role: 'user',
@@ -297,7 +319,7 @@ async function generateImage(model: string, prompt: string) {
             prompt: prompt,
             n: 1,
             size: "1024x1024",
-        });
+        })
 
         const responseContent = response.data.map(item => `![${prompt}](${item.url})`).join('\n')
 
@@ -311,7 +333,6 @@ async function generateImage(model: string, prompt: string) {
             content: String(err),
         })
     }
-
 
 
     // ChatState.setState(fpObjSet('responses', fpMapSet(id, msg => ({
@@ -340,22 +361,22 @@ async function googGenAiGo(modelName: string, message: string) {
         topK: 1,
         topP: 1,
         maxOutputTokens: 2048,
-    };
+    }
 
     const safetySettings: SafetySetting[] = []
 
     const parts = [
         {text: message},
-    ];
+    ]
 
     // TODO: switch to startChat (https://makersuite.google.com/app/prompts/new_chat)
     const result = await model.generateContent({
-        contents: [{ role: "user", parts }],
+        contents: [{role: "user", parts}],
         generationConfig,
         safetySettings,
-    });
+    })
 
-    console.log('result',result)
+    console.log('result', result)
 
     appendMessage({
         role: 'assistant',
@@ -370,7 +391,7 @@ function BottomForm() {
         }
     })
 
-    const taRef = useRef<TextAreaRef|null>(null)
+    const taRef = useRef<TextAreaRef | null>(null)
 
     const onSubmit = useEvent<ChatMessageForm>(data => {
         const model = ModelState.getSnapshot().model
@@ -382,13 +403,13 @@ function BottomForm() {
         switch(category) {
             case 'openai-chatgpt':
                 sendMessageLegacy(model, data.message)
-                break;
+                break
             case 'openai-functions':
                 sendMessageWithFunctions(model, data.message)
-                break;
+                break
             case 'openai-image':
                 generateImage(model, data.message)
-                break;
+                break
             case 'vertex-ai':
                 googGenAiGo(model, data.message)
                 break
@@ -401,8 +422,8 @@ function BottomForm() {
     const doSubmit = handleSubmit(onSubmit)
 
     const handleKeyDown = useEvent<React.KeyboardEvent<HTMLTextAreaElement>>(event => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault(); // Prevent the default action (inserting a new line)
+        if(event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault() // Prevent the default action (inserting a new line)
             doSubmit()
         }
     })
@@ -412,10 +433,13 @@ function BottomForm() {
     return (
         <form onSubmit={doSubmit} className={css.chatBar}>
             <div className={css.flex1}>
-                <AutoTextArea initialHeight="0" className={css.input} onKeyDown={handleKeyDown} {...taProps} ref={ref => {
-                    taRef.current = ref
-                    taProps.ref(ref?.element)
-                }} />
+                <AutoTextArea initialHeight="0"
+                    className={css.input}
+                    onKeyDown={handleKeyDown} {...taProps}
+                    ref={ref => {
+                        taRef.current = ref
+                        taProps.ref(ref?.element)
+                    }} />
             </div>
             <button type="submit" className={css.imageButton}>
                 <SendIcon />
@@ -481,7 +505,7 @@ function SideBarContents() {
         if(window.innerWidth > 799) return // must match chat.module.css floaty thing
         const clicked = el.target as HTMLElement
         // console.log(sidebarRef.current?.contains(clicked), refContains(floaterRef,clicked))
-        if(refContains(sidebarRef,clicked) || refContains(floaterRef,clicked)) return
+        if(refContains(sidebarRef, clicked) || refContains(floaterRef, clicked)) return
 
         // console.log(clicked,sidebarRef.current,floaterRef.current,clicked.contains(floaterRef.current))
         // if(clicked.contains(sidebarRef.current) || clicked.contains(floaterRef.current)) return
@@ -515,10 +539,9 @@ function SideBarContents() {
                         </button>
                     </div>
                     <div>
-                        <button onClick={() => {
+                        <IconButton onClick={() => {
                             ChatState.setState(fpObjSet('responses', new Map))
-                        }}>New Chat
-                        </button>
+                        }} icon={<NewChatIcon/>}>New Chat</IconButton>
                     </div>
 
                 </div>
@@ -529,39 +552,41 @@ function SideBarContents() {
             <Accordion>
                 <Drawer title="API Keys">
                     <div>
-                        <label>
+                        <label className={css.labelWithInput}>
                             <span>Open AI</span>
                             <TextInput value={state.apiKey} onChange={keyChange} className={css.apiKeyInput} />
                         </label>
-                        <div>
+                        <div className={css.helpLinks}>
                             <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
                             {' | '}
                             <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
                         </div>
                     </div>
-                    <div>
-                        <label>
-                            <span>Google Maps</span>
-                            <TextInput value={state.googleMapsKey}
-                                onChange={ev => ModelState.setState(fpObjSet('googleMapsKey', ev.value))}
-                                className={css.apiKeyInput} />
-                        </label>
-                        <div>
-                            <ExternalLink href="https://console.cloud.google.com/google/maps-apis/credentials">Get
-                                Key</ExternalLink>
-                        </div>
-                    </div>
 
                     <div>
-                        <label>
+                        <label className={css.labelWithInput}>
                             <span>Vertex AI</span>
                             <TextInput value={state.vertexAiKey}
                                 onChange={ev => ModelState.setState(fpObjSet('vertexAiKey', ev.value))}
                                 className={css.apiKeyInput} />
                         </label>
-                        <div>
+                        <div className={css.helpLinks}>
                             <ExternalLink href="https://makersuite.google.com/app/apikey">Get
-                                Key</ExternalLink> | <ExternalLink href="https://cloud.google.com/vertex-ai/pricing">Pricing</ExternalLink> | <ExternalLink href="https://console.cloud.google.com/apis/api/aiplatform.googleapis.com/cost">Usage</ExternalLink>
+                                Key</ExternalLink> | <ExternalLink href="https://cloud.google.com/vertex-ai/pricing">Pricing</ExternalLink> | <ExternalLink
+                            href="https://console.cloud.google.com/apis/api/aiplatform.googleapis.com/cost">Usage</ExternalLink>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className={css.labelWithInput}>
+                            <span>Google Maps</span>
+                            <TextInput value={state.googleMapsKey}
+                                onChange={ev => ModelState.setState(fpObjSet('googleMapsKey', ev.value))}
+                                className={css.apiKeyInput} />
+                        </label>
+                        <div className={css.helpLinks}>
+                            <ExternalLink href="https://console.cloud.google.com/google/maps-apis/credentials">Get
+                                Key</ExternalLink>
                         </div>
                     </div>
                 </Drawer>
@@ -612,7 +637,7 @@ function ShowUsage() {
                 </tbody>
             </table>
             <div>
-                <b>Total Cost:</b> <Price value={state.cost}/>
+                <b>Total Cost:</b> <Price value={state.cost} />
             </div>
         </div>
     )
@@ -633,11 +658,11 @@ function ModelInfoTable({model}: ModelInfoTableProps) {
                 </tr> : null}
                 <tr>
                     <th>Input</th>
-                    <td><Price value={info.input}/> / 1k tokens</td>
+                    <td><Price value={info.input} /> / 1k tokens</td>
                 </tr>
                 <tr>
                     <th>Output</th>
-                    <td><Price value={info.output}/> / 1k tokens</td>
+                    <td><Price value={info.output} /> / 1k tokens</td>
                 </tr>
                 {info.contextWindow ? <tr>
                     <th>Context</th>
