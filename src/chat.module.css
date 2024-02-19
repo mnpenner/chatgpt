@@ -404,8 +404,8 @@
 
 .drawer-wrap {
     overflow: clip;
-    height: 0;
-    transition: height 200ms ease-out;
+    /*height: 0;*/
+    /*transition: height 200ms ease-out;*/
 }
 
 /*@keyframes slideDown {*/
