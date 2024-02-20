@@ -1,4 +1,5 @@
 import {DependencyList, useEffect, useRef, useState} from "react"
+import {EMPTY_ARRAY} from '../lib/constants.ts'
 
 export type UsePromiseResult<V, E> = {
     /** Value if promise was fulfilled. */
@@ -11,7 +12,7 @@ export type UsePromiseResult<V, E> = {
     pending: boolean
 }
 
-export default function usePromise<V, E>(cb: () => Promise<V>, deps: DependencyList): UsePromiseResult<V, E> {
+export default function usePromise<V, E>(cb: () => Promise<V>, deps: DependencyList=EMPTY_ARRAY): UsePromiseResult<V, E> {
     const [state, setState] = useState<UsePromiseResult<V, E>>({
         value: undefined,
         error: undefined,
@@ -64,6 +65,7 @@ export default function usePromise<V, E>(cb: () => Promise<V>, deps: DependencyL
         return () => {
             abort = true
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps)
 
     return state

@@ -6,6 +6,8 @@ import {Resolvable, resolveValue} from './resolvable.ts'
  *
  * The target object *should* be the full object (with all keys defined), and the objects to be merged may be partial.
  * If the target and objects to be merged do not sum up to the full object then the return type will be invalid.
+ *
+ * @deprecated Use imut-utils
  */
 export function fpShallowMerge<T extends {}>(...objects: Array<{
     [K in keyof T]?: Resolvable<T[K], [T[K], K]>;

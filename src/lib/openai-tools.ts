@@ -5,7 +5,7 @@ import {Value} from '@sinclair/typebox/value'
 import {okFetch} from './ajax.ts'
 import {getGoogleMapsDirectionsUrl} from './google-maps.ts'
 import {appendQueryParams, encodeParam} from './url-params.ts'
-import {ModelState} from '../state/model-options.ts'
+import {ModelState} from '../state/model-state.ts'
 
 
 type FuncExec = (params: any) => any

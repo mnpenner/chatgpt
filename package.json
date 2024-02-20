@@ -17,6 +17,7 @@
     "@mpen/is-type": "*",
     "@mpen/react-basic-inputs": "0.1.9",
     "@sinclair/typebox": "^0.32.13",
+    "@tanstack/react-query": "^5.22.2",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "classcat": "^5.0.4",
     "js-tiktoken": "^1.0.10",

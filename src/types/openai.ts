@@ -1,5 +1,6 @@
 import {EmptyObject, XOR} from './util-types.ts'
 import type OpenAI from 'openai'
+import type OpenAI from 'openai'
 
 export type ChatDelta = {
     id: string;
@@ -32,10 +33,26 @@ export const enum Role {
     Assistant = 'assistant',
 }
 
-export type Message = {
+export const enum MessageType {
+    OpenAiThreadMessage,
+}
+
+
+export type OaiThreadMessageContentItem = OpenAI.Beta.Threads.ThreadMessage['content'][number]
+export type OaiThreadMessageContent = OpenAI.Beta.Threads.ThreadMessage['content']
+
+export type OaiThreadMessage = OpenAI.Beta.Threads.ThreadMessage & {
+    $type: MessageType.OpenAiThreadMessage
+}
+
+export type LegacyMessage = {
     role: 'system' | 'user' | 'assistant';
     content: string|null;
 }
+
+export type AnyMessage = LegacyMessage | OaiThreadMessage
+
+
 
 export type Usage = {
     prompt_tokens: number;

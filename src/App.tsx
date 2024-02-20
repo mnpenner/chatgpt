@@ -1,48 +1,66 @@
 import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
-import {ChatState, ResponseMessage} from './state/chat-state.ts'
-import {fpMapSet, fpObjSet, fpShallowMerge,fpMapUpdate} from '@mpen/imut-utils'
-import {fullWide, uniqId} from './lib/misc.ts'
+import {ChatState, MessageType, RenderableMessage} from './state/chat-state.ts'
+import {fpMapSet, fpMapUpdate, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
+import {fullWide, sleep, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
+import {
+    useQuery,
+    useMutation,
+    useQueryClient,
+    QueryClient,
+    QueryClientProvider,
+} from '@tanstack/react-query'
 import NewChatIcon from './assets/comment-medical.svg?react'
 import {
-    Select,
-    TextInput,
-    TextArea as _TextArea,
-    type TextAreaRef,
-    type TextAreaProps,
     type InputChangeEvent,
+    RadioMenu,
+    Select,
     type SelectChangeEvent,
-    RadioMenu
+    TextArea as _TextArea,
+    type TextAreaProps,
+    type TextAreaRef,
+    TextInput
 } from '@mpen/react-basic-inputs'
-import {ExternalLink} from './links.tsx'
-import {ModelState} from './state/model-options.ts'
+import {ActionLink, ExternalLink} from './links.tsx'
+import {ModelState} from './state/model-state.ts'
 import {postSSE} from './lib/sse.ts'
-import {ChatDelta, COMPLETIONS_ENDPOINT, MAX_TOKENS, Message, Role} from './types/openai.ts'
+import {
+    ChatDelta,
+    COMPLETIONS_ENDPOINT,
+    MAX_TOKENS,
+    LegacyMessage,
+    Role,
+    OaiThreadMessageContent, OaiThreadMessageContentItem
+} from './types/openai.ts'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
 import {
     getModelInfo,
     modelCategoryOptions,
     OPENAI_MODEL_ALIASES,
-    OpenAiModelId, SUB_OPTIONS
+    OpenAiModelId,
+    SUB_OPTIONS
 } from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-import React, {useEffect, useRef, FC} from 'react'
+import React, {FC, useRef} from 'react'
 import cc from 'classcat'
 import {Accordion, Drawer} from './accordion.tsx'
 import OpenAI from 'openai'
 import {callTool, openaiTools} from './lib/openai-tools.ts'
-import {logJson} from './lib/debug.ts'
 import type {GenerationConfig, SafetySetting} from '@google/generative-ai'
 import {SidebarState} from './state/sidebar-state.ts'
 import {useEventListener} from './hooks/useEventListener.ts'
 import {refContains} from './lib/react.ts'
 import {useNullRef} from './hooks/useNullRef.ts'
 import {IconButton} from './button.tsx'
+import {getOpenAi, getOpenAiSync} from './lib/openai.ts'
+import {queryClient} from './lib/query-client.ts'
+import {AssistantList} from './assistants.tsx'
+import {Override} from './types/util-types.ts'
 
 
 const Page = withClass('div', css.page)
@@ -57,13 +75,16 @@ type ChatMessageForm = {
     message: string
 }
 
-const TypingDots:FC = () => <span className={css.jumpingDots}>
-    <span className={cc([css.jumpingDot,css.dot1])}>.</span>
-    <span className={cc([css.jumpingDot,css.dot2])}>.</span>
-    <span className={cc([css.jumpingDot,css.dot3])}>.</span>
+const TypingDots: FC = () => <span className={css.jumpingDots}>
+    <span className={cc([css.jumpingDot, css.dot1])}>.</span>
+    <span className={cc([css.jumpingDot, css.dot2])}>.</span>
+    <span className={cc([css.jumpingDot, css.dot3])}>.</span>
 </span>
 
-function RenderMessage({message: message, id: id}: { id: string, message: ResponseMessage }) {
+// const MessageContent: FC<RenderableMessage> = msg => {
+// }
+
+function RenderMessage({message: message, id: id}: { id: string, message: RenderableMessage }) {
 
     return (
         <div className={cc([css.chatMessageContainer, message.role === 'user' ? css.user : css.assistant])}>
@@ -80,9 +101,8 @@ function RenderMessage({message: message, id: id}: { id: string, message: Respon
                     </span>
             </div>
             <div className={cc([css.chatBubble])}>
-                <div>
-                    {message.rawMarkdown ? <pre>{message.content}</pre> : <Markdown>{message.content}</Markdown>}
-                </div>
+                {message.rawMarkdown ? <pre>{message.content}</pre> : <Markdown>{message.content}</Markdown>}
+                {message.inProgress ? <TypingDots/> : null}
             </div>
         </div>
     )
@@ -114,7 +134,7 @@ function MessageList() {
     )
 }
 
-function appendMessage(message: Message) {
+function appendMessage(message: LegacyMessage) {
     const id = uniqId()
     ChatState.setState(fpObjSet('responses', fpMapSet(id, message)))
     return id
@@ -125,12 +145,12 @@ function sendMessageLegacy(model: string, message: string) {
     const info = getModelInfo(model)
     if(!info) throw new Error(`Could not get info for model "${model}"`)
 
-    const newUserMessage: Message = {
+    const newUserMessage: LegacyMessage = {
         role: 'user',
         content: message,
     }
 
-    const sendMessages: Message[] = [
+    const sendMessages: LegacyMessage[] = [
         {
             role: 'system',
             content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks. Write formulas, math equations and symbols using `remark-math` syntax. Large formulas should go on their own line, separated with $$ on either side; e.g.\n\n$$\nL = \\frac{1}{2} \\rho v^2 S C_L\n$$\n\nMath symbols should be written with a single $ on either side, e.g. $C_L$"
@@ -224,13 +244,6 @@ function sendMessageLegacy(model: string, message: string) {
     })
 }
 
-function getOpenAi() {
-    return new OpenAI({
-        apiKey: ModelState.getSnapshot().apiKey,
-        dangerouslyAllowBrowser: true,
-    })
-}
-
 async function getGoogGenAi() {
     const apiKey = ModelState.getSnapshot().googleMapsKey
     const {GoogleGenerativeAI} = await import('@google/generative-ai')
@@ -238,9 +251,9 @@ async function getGoogGenAi() {
 }
 
 async function sendMessageWithFunctions(model: string, message: string) {
-    const openai = getOpenAi()
+    const openai = getOpenAiSync()
 
-    const newUserMessage: Message = {
+    const newUserMessage: LegacyMessage = {
         role: 'user',
         content: message,
     }
@@ -306,7 +319,7 @@ async function sendMessageWithFunctions(model: string, message: string) {
 
 
 async function generateImage(model: string, prompt: string) {
-    const openai = getOpenAi()
+    const openai = getOpenAiSync()
 
     appendMessage({
         role: 'user',
@@ -345,6 +358,81 @@ async function generateImage(model: string, prompt: string) {
     //     role: 'assistant',
     //     content: response.data.map(item => `![${prompt}](${item.url})`).join('\n'),
     // })
+}
+
+function waitForRun(run: OpenAI.Beta.Threads.Runs.Run) {
+    return waitForRunById(run.thread_id, run.id)
+}
+
+type CompletedRun = OpenAI.Beta.Threads.Runs.Run & {
+    completed_at: Exclude<OpenAI.Beta.Threads.Runs.Run['completed_at'], null>
+}
+
+async function waitForRunById(threadId: string, runId: string) {
+
+    const openai = await getOpenAi()
+
+    await sleep(500)
+    for(;;) {
+        const run = await openai.beta.threads.runs.retrieve(threadId, runId);
+        if(run.status === 'queued' || run.status === 'in_progress') {
+            await sleep(50)
+            continue
+        }
+        if(run.status === 'completed') return run as CompletedRun
+        throw run
+    }
+}
+
+function flattenOaiContentItem(item: OaiThreadMessageContentItem) {
+    switch(item.type) {
+        case 'text':
+            return item.text.value
+        default:
+            throw new Error(`Not implemented: ${item.type}`)
+    }
+}
+
+function flattenOaiContent(content: OaiThreadMessageContent) {
+    return content.map(i => flattenOaiContentItem(i)).join('')
+}
+
+async function oaiAssistantMessage(assistantId: string, message: string) {
+
+
+    const userMsgId = appendMessage({
+        role: Role.User,
+        content: message,
+    })
+
+    const amigoMsgId = uniqId()
+    ChatState.setState(fpObjSet('responses', fpMapSet(amigoMsgId, {
+        role: Role.Assistant,
+        inProgress: true,
+        content: '',
+    })))
+
+    const openai = await getOpenAi()
+
+
+    const run =  await waitForRun(await openai.beta.threads.createAndRun({
+        assistant_id: assistantId,
+        thread: {
+            messages: [
+                { role: "user", content: message },
+            ],
+        },
+    }))
+
+    const messagesPage = await openai.beta.threads.messages.list(run.thread_id, {
+        order: 'asc',
+        limit: 100,
+    });
+
+    ChatState.setState(fpObjSet('responses', new Map(messagesPage.data.map(msg => [msg.id,{
+        role: msg.role,
+        content: flattenOaiContent(msg.content),
+    } satisfies RenderableMessage]))))
 }
 
 async function googGenAiGo(modelName: string, message: string) {
@@ -394,28 +482,34 @@ function BottomForm() {
     const taRef = useRef<TextAreaRef | null>(null)
 
     const onSubmit = useEvent<ChatMessageForm>(data => {
-        const model = ModelState.getSnapshot().model
-        const category = ModelState.getSnapshot().modelCategory
+
+        const assistantId = ModelState.getSnapshot().assistantId
 
         reset()
         taRef.current?.adjustHeight()
 
-        switch(category) {
-            case 'openai-chatgpt':
-                sendMessageLegacy(model, data.message)
-                break
-            case 'openai-functions':
-                sendMessageWithFunctions(model, data.message)
-                break
-            case 'openai-image':
-                generateImage(model, data.message)
-                break
-            case 'vertex-ai':
-                googGenAiGo(model, data.message)
-                break
-            default:
-                alert("Unimplemented")
-                break
+        if(assistantId) {
+            oaiAssistantMessage(assistantId, data.message)
+        } else {
+            const model = ModelState.getSnapshot().model
+            const category = ModelState.getSnapshot().modelCategory
+            switch(category) {
+                case 'openai-chatgpt':
+                    sendMessageLegacy(model, data.message)
+                    break
+                case 'openai-functions':
+                    sendMessageWithFunctions(model, data.message)
+                    break
+                case 'openai-image':
+                    generateImage(model, data.message)
+                    break
+                case 'vertex-ai':
+                    googGenAiGo(model, data.message)
+                    break
+                default:
+                    alert("Unimplemented")
+                    break
+            }
         }
     })
 
@@ -541,7 +635,7 @@ function SideBarContents() {
                     <div>
                         <IconButton onClick={() => {
                             ChatState.setState(fpObjSet('responses', new Map))
-                        }} icon={<NewChatIcon/>}>New Chat</IconButton>
+                        }} icon={<NewChatIcon />}>New Chat</IconButton>
                     </div>
 
                 </div>
@@ -567,6 +661,17 @@ function SideBarContents() {
 
                 <Drawer title="Usage" drawerId="usage">
                     <ShowUsage />
+                </Drawer>
+
+                <Drawer title="Assistants" drawerId="assistants">
+                    <AssistantList />
+                    <div className={css.helpLinks}>
+                        <ExternalLink href="https://platform.openai.com/assistants/api-keys">Create</ExternalLink>
+                        {' | '}
+                        <ActionLink onClick={() => {
+                            ModelState.setState(fpObjSet('assistantId',''))
+                        }}>Clear</ActionLink>
+                    </div>
                 </Drawer>
 
                 <Drawer title="API Keys" drawerId="api-keys">
@@ -689,13 +794,14 @@ function Floater() {
 
 export default function App() {
 
-    const sideBarOpen = SidebarState.useState(s => s.open)
 
     return (
-        <Page>
-            <ChatContents />
-            <SideBarContents />
-        </Page>
+        <QueryClientProvider client={queryClient}>
+            <Page>
+                <ChatContents />
+                <SideBarContents />
+            </Page>
+        </QueryClientProvider>
     )
 }
 

@@ -534,3 +534,24 @@
 
 /*}*/
 
+
+.assistant-list {
+    padding: 0;
+    list-style: none;
+    margin: .5em 0;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-wrap: wrap;
+    li {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        border-radius: .5em;
+        padding: .1em .4em;
+        cursor: pointer;
+        &:hover {
+            background-color: #555555;
+        }
+    }
+}

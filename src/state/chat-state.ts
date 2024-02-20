@@ -1,13 +1,25 @@
 import {createGlobalState} from '../lib/global-state.ts'
-import {Message} from '../types/openai.ts'
+import {AnyMessage, LegacyMessage, OaiThreadMessage} from '../types/openai.ts'
+import type OpenAI from 'openai'
 
-export interface ResponseMessage extends Message {
+
+export type MessageMetadata = {
     tokenCount?: number
     rawMarkdown?: boolean
+    inProgress?: boolean
 }
 
+
+export type RenderableMessage =
+    | (MessageMetadata & LegacyMessage)
+    // | (MessageMetadata & {message: OaiThreadMessage})
+
+
+
+
+
 type ChatStateType = {
-    responses: Map<string,ResponseMessage>
+    responses: Map<string,RenderableMessage>
     // runningCost: number
 }
 

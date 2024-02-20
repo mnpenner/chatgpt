@@ -14,3 +14,5 @@ export function fullWide(n: number): string {
         return n.toFixed(14).replace(/\.?0+$/, '')
     }
 }
+
+export const sleep = (ms:number) => new Promise(r => setTimeout(r,ms))
