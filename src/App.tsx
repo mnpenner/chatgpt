@@ -1,8 +1,8 @@
 import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
-import {ChatState, MessageType, RenderableMessage} from './state/chat-state.ts'
-import {fpMapSet, fpMapUpdate, fpObjSet, fpShallowMerge} from '@mpen/imut-utils'
+import {ChatState, RenderableMessage} from './state/chat-state.ts'
+import {fpMapSet, fpMapUpdate, fpObjSet, fpShallowMerge,fpArrayPush} from '@mpen/imut-utils'
 import {fullWide, sleep, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
@@ -59,8 +59,9 @@ import {useNullRef} from './hooks/useNullRef.ts'
 import {IconButton} from './button.tsx'
 import {getOpenAi, getOpenAiSync} from './lib/openai.ts'
 import {queryClient} from './lib/query-client.ts'
-import {AssistantList} from './assistants.tsx'
+import {AssistantList, ThreadList} from './assistants.tsx'
 import {Override} from './types/util-types.ts'
+import {OaiThreadState} from './state/oai-thread-state.ts'
 
 
 const Page = withClass('div', css.page)
@@ -397,12 +398,12 @@ function flattenOaiContent(content: OaiThreadMessageContent) {
     return content.map(i => flattenOaiContentItem(i)).join('')
 }
 
-async function oaiAssistantMessage(assistantId: string, message: string) {
+async function oaiAssistantMessage(assistantId: string, messageString: string) {
 
 
     const userMsgId = appendMessage({
         role: Role.User,
-        content: message,
+        content: messageString,
     })
 
     const amigoMsgId = uniqId()
@@ -414,15 +415,29 @@ async function oaiAssistantMessage(assistantId: string, message: string) {
 
     const openai = await getOpenAi()
 
+    let selectedThreadId = ModelState.getSnapshot().threadId
 
-    const run =  await waitForRun(await openai.beta.threads.createAndRun({
-        assistant_id: assistantId,
-        thread: {
-            messages: [
-                { role: "user", content: message },
-            ],
-        },
-    }))
+    if(!selectedThreadId) {
+        const thread =  await openai.beta.threads.create()
+        OaiThreadState.setState(fpArrayPush(thread))
+        selectedThreadId = thread.id
+        ModelState.setState(fpObjSet('threadId',selectedThreadId))
+    }
+
+    const message = await openai.beta.threads.messages.create(
+        selectedThreadId,
+        {
+            role: "user",
+            content: messageString
+        }
+    );
+
+    const run =  await waitForRun(await openai.beta.threads.runs.create(
+        selectedThreadId,
+        {
+            assistant_id: assistantId,
+        }
+    ))
 
     const messagesPage = await openai.beta.threads.messages.list(run.thread_id, {
         order: 'asc',
@@ -670,7 +685,18 @@ function SideBarContents() {
                         {' | '}
                         <ActionLink onClick={() => {
                             ModelState.setState(fpObjSet('assistantId',''))
-                        }}>Clear</ActionLink>
+                        }}>Unselect</ActionLink>
+                    </div>
+                </Drawer>
+
+                <Drawer title="Threads" drawerId="threads">
+                    <ThreadList />
+                    <div className={css.helpLinks}>
+                        <ExternalLink href="https://platform.openai.com/threads">View All</ExternalLink>
+                        {' | '}
+                        <ActionLink onClick={() => {
+                            ModelState.setState(fpObjSet('threadId',''))
+                        }}>Unselect</ActionLink>
                     </div>
                 </Drawer>
 

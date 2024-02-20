@@ -91,7 +91,7 @@ function okResponse(req: Request, res: Response): Response | never {
 /**
  * Get JSON from the server.
  */
-function getJson<TRes>(opts: BaseFetchOptions): Promise<TRes> {
+export function getJson<TRes>(opts: BaseFetchOptions): Promise<TRes> {
     return okFetch({
         ...opts,
         headers: mergeHeaders({[CommonHeaders.ACCEPT]: ContentTypes.JSON}, opts.headers),
