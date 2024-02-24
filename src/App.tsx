@@ -7,6 +7,8 @@ import {fullWide, sleep, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
 import useEventHandler, {useEvent} from './hooks/useEvent.ts'
 import SendIcon from './assets/send.svg?react'
+import ChevronIcon from './assets/chevron-left.svg?react'
+import BarsIcon from './assets/bars.svg?react'
 import {
     useQuery,
     useMutation,
@@ -628,10 +630,9 @@ function SideBarContents() {
     if(!sideBarOpen) {
         return (
             <div className={css.floater} ref={floaterRef}>
-                <button onClick={() => {
+                <IconButton icon={<BarsIcon/>} onClick={() => {
                     SidebarState.setState(fpObjSet('open', true))
-                }}>=
-                </button>
+                }}/>
             </div>
         )
     }
@@ -642,10 +643,9 @@ function SideBarContents() {
             <div className={css.sidebarIndent}>
                 <div className={css.spaceBetween}>
                     <div>
-                        <button onClick={() => {
+                        <IconButton icon={<ChevronIcon/>} onClick={() => {
                             SidebarState.setState(fpObjSet('open', false))
-                        }}>&lt;
-                        </button>
+                        }}/>
                     </div>
                     <div>
                         <IconButton onClick={() => {
@@ -708,6 +708,8 @@ function SideBarContents() {
                         </label>
                         <div className={css.helpLinks}>
                             <ExternalLink href="https://platform.openai.com/api-keys">Get Key</ExternalLink>
+                            {' | '}
+                            <ExternalLink href="https://openai.com/pricing">Pricing</ExternalLink>
                             {' | '}
                             <ExternalLink href="https://platform.openai.com/usage">Usage</ExternalLink>
                         </div>

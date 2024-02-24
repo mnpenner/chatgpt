@@ -14,3 +14,5 @@
   - [ ] setting to toggle Enter to send or Shift+enter
 - [x] click outside floating sidebar to close
 - [ ] add temperature setting
+- [ ] https://wow.groq.com/
+- [ ] Ollama/self-host support

@@ -9,6 +9,6 @@ export type IconButtonProps = OverrideProps<'button', {
 export const IconButton: FC<IconButtonProps> = ({icon,className,children,...props}) => (
     <button {...props} className={cc([css.iconButton,className])}>
         {icon}
-        <span>{children}</span>
+        {children ? <span>{children}</span> : null}
     </button>
 )
