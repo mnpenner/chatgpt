@@ -1,4 +1,4 @@
-import {nil} from '../types/util-types.ts'
+import type {nil} from '../types/util-types.ts'
 
 /**
  * Map over a Map. Returns an array.

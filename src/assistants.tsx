@@ -1,4 +1,4 @@
-import {useListAssistants, useListThreads} from './queries/assistants.ts'
+import {useListAssistants} from './queries/assistants.ts'
 import {ModelState} from './state/model-state.ts'
 import {fpObjSet} from '@mpen/imut-utils'
 import css from './chat.module.css'

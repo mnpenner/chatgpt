@@ -1,7 +1,6 @@
 // https://github.com/scottrippey/react-use-event-hook/blob/75ba34af9175dc311afb3fb302d6fea44e4a5203/src/useEvent.ts
-import {useInsertionEffect, useRef} from "react"
-import {AnyFn, AnyObject, EventCallback} from '../types/util-types.ts'
-import {NOOP} from '../lib/constants.ts'
+import { useRef} from "react"
+import type {AnyFn, EventCallback} from '../types/util-types.ts';
 
 
 /**

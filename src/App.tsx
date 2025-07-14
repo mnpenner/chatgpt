@@ -1,7 +1,8 @@
 import {withClass} from './with-class.tsx'
 import css from './chat.module.css'
 import {useForm} from "react-hook-form"
-import {ChatState, RenderableMessage} from './state/chat-state.ts'
+import type { RenderableMessage} from './state/chat-state.ts';
+import {ChatState} from './state/chat-state.ts'
 import {fpMapSet, fpMapUpdate, fpObjSet, fpShallowMerge,fpArrayPush} from '@mpen/imut-utils'
 import {fullWide, sleep, uniqId} from './lib/misc.ts'
 import {mapMap, mapObj} from './lib/collection.ts'
@@ -10,10 +11,6 @@ import SendIcon from './assets/send.svg?react'
 import ChevronIcon from './assets/chevron-left.svg?react'
 import BarsIcon from './assets/bars.svg?react'
 import {
-    useQuery,
-    useMutation,
-    useQueryClient,
-    QueryClient,
     QueryClientProvider,
 } from '@tanstack/react-query'
 import NewChatIcon from './assets/comment-medical.svg?react'
@@ -30,28 +27,32 @@ import {
 import {ActionLink, ExternalLink} from './links.tsx'
 import {ModelState} from './state/model-state.ts'
 import {postSSE} from './lib/sse.ts'
-import {
+import type {
     ChatDelta,
+    LegacyMessage,
+    OaiThreadMessageContent, OaiThreadMessageContentItem
+} from './types/openai.ts';
+import {
     COMPLETIONS_ENDPOINT,
     MAX_TOKENS,
-    LegacyMessage,
-    Role,
-    OaiThreadMessageContent, OaiThreadMessageContentItem
+    Role
 } from './types/openai.ts'
 import {Markdown} from './markdown.tsx'
 import type {TiktokenModel} from "js-tiktoken"
+import type {
+    OpenAiModelId} from './lib/openai-models.ts';
 import {
     getModelInfo,
     modelCategoryOptions,
     OPENAI_MODEL_ALIASES,
-    OpenAiModelId,
     SUB_OPTIONS
 } from './lib/openai-models.ts'
 import {UsageState} from './state/usage-state.ts'
-import React, {FC, useRef} from 'react'
+import type {FC} from 'react';
+import React, { useRef} from 'react'
 import cc from 'classcat'
 import {Accordion, Drawer} from './accordion.tsx'
-import OpenAI from 'openai'
+import type OpenAI from 'openai'
 import {callTool, openaiTools} from './lib/openai-tools.ts'
 import type {GenerationConfig, SafetySetting} from '@google/generative-ai'
 import {SidebarState} from './state/sidebar-state.ts'
@@ -62,7 +63,6 @@ import {IconButton} from './button.tsx'
 import {getOpenAi, getOpenAiSync} from './lib/openai.ts'
 import {queryClient} from './lib/query-client.ts'
 import {AssistantList, ThreadList} from './assistants.tsx'
-import {Override} from './types/util-types.ts'
 import {OaiThreadState} from './state/oai-thread-state.ts'
 
 

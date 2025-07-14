@@ -1,5 +1,6 @@
-import {nil, OverrideProps, RequiredKeys} from './types/util-types.ts'
-import React, {ComponentPropsWithoutRef} from 'react'
+import type {nil, OverrideProps, RequiredKeys} from './types/util-types.ts'
+import type {ComponentPropsWithoutRef} from 'react';
+import React from 'react'
 import {cast} from './types/assert.ts'
 
 export type LinkRelation = string | string[] | nil

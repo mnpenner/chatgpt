@@ -1,5 +1,4 @@
-import {EmptyObject, XOR} from './util-types.ts'
-import type OpenAI from 'openai'
+import type {EmptyObject, XOR} from './util-types.ts'
 import type OpenAI from 'openai'
 
 export type ChatDelta = {

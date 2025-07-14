@@ -1,4 +1,5 @@
-import {Resolvable, Next, resolveValue} from './resolvable'
+import type { Next} from './resolvable';
+import { resolveValue} from './resolvable'
 
 export type StoreListener<T> = (value: T) => void
 

@@ -2,7 +2,7 @@
 // https://platform.openai.com/docs/models/overview
 
 
-import {mapMap, mapObj} from './collection.ts'
+import {mapMap} from './collection.ts'
 
 export type OpenAiModelId = string|import('js-tiktoken').TiktokenModel
 import type {SelectOption} from '@mpen/react-basic-inputs'

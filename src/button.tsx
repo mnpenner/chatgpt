@@ -1,5 +1,5 @@
-import {OverrideProps} from './types/util-types.ts'
-import {FC, ReactNode} from 'react'
+import type {OverrideProps} from './types/util-types.ts'
+import type {FC, ReactNode} from 'react'
 import cc from 'classcat'
 import css from './chat.module.css'
 

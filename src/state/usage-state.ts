@@ -1,6 +1,6 @@
 import {createGlobalState} from '../lib/global-state.ts'
 import {localStorageGetJson, localStorageSetJson} from '../lib/local-storage.ts'
-import {OpenAiModelId} from '../lib/openai-models.ts'
+import type {OpenAiModelId} from '../lib/openai-models.ts'
 
 type UsageType = {
     input: number

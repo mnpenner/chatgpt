@@ -1,7 +1,7 @@
 // https://github.com/mpetazzoni/sse.js/blob/main/lib/sse.js
 
 
-import {JsonResponse, JsonSerializable} from '../types/json-types.ts'
+import type { JsonSerializable} from '../types/json-types.ts';
 import {CommonHeaders, ContentTypes} from './enums'
 import {jsonStringify} from './json-serialize.ts'
 

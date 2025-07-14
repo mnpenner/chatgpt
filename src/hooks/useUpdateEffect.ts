@@ -1,4 +1,5 @@
-import { useEffect, useRef, EffectCallback, DependencyList } from 'react';
+import type { EffectCallback, DependencyList } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useUpdateEffect(effect: EffectCallback, dependencies?: DependencyList): void {
     const isInitialMount = useRef<boolean>(true);

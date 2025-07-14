@@ -1,4 +1,5 @@
-import {Resolvable, resolveValue} from './resolvable.ts'
+import type {Resolvable} from './resolvable.ts';
+import { resolveValue} from './resolvable.ts'
 
 /**
  * Merge one or more objects into a target object, similar to

@@ -1,6 +1,5 @@
 import {createGlobalState} from '../lib/global-state.ts'
-import {AnyMessage, LegacyMessage, OaiThreadMessage} from '../types/openai.ts'
-import type OpenAI from 'openai'
+import type { LegacyMessage} from '../types/openai.ts';
 
 
 export type MessageMetadata = {

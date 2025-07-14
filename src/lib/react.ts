@@ -1,4 +1,5 @@
-import React, {Ref, RefCallback, RefObject} from 'react'
+import type { RefCallback, RefObject} from 'react';
+import type React from 'react';
 
 export function getComponentName(Component: React.ElementType): string {
     if(typeof Component === 'string') {

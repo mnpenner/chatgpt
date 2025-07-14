@@ -1,4 +1,4 @@
-import {JsonSerializable} from '../types/json-types.ts'
+import type {JsonSerializable} from '../types/json-types.ts'
 import {jsonParse, jsonStringify} from './json-serialize.ts'
 
 export function localStorageGetJson<T>(key: string, defaultValue:T):T

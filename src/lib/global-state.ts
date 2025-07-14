@@ -2,10 +2,7 @@ import {useSyncExternalStoreWithSelector} from 'use-sync-external-store/shim/wit
 import {ExternalStore} from './external-store.ts'
 import {identity} from './misc'
 import React, {useDebugValue} from 'react'
-import {AnyFn, AnyObject} from '../types/util-types.ts'
-import {Resolvable, Next, resolveValue} from './resolvable.ts'
-import {fpShallowMerge} from './fp.ts'
-import {varDump} from './debug.ts'
+import type { AnyObject} from '../types/util-types.ts';
 
 
 interface SubscribeOptions<TState, TValue> {

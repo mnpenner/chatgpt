@@ -1,5 +1,6 @@
-import {Override, OverrideProps} from './types/util-types.ts'
-import ReactMarkdown, {Components, Options} from 'react-markdown'
+import type { OverrideProps} from './types/util-types.ts';
+import type {Components} from 'react-markdown';
+import ReactMarkdown from 'react-markdown'
 import css from './chat.module.css'
 import ClipboardSvg from './assets/clipboard.svg?react'
 import remarkGfm from 'remark-gfm'
@@ -8,7 +9,6 @@ import cc from 'classcat'
 import {ExternalLink} from './links.tsx'
 import usePromise from './hooks/usePromise.ts'
 import type {Element} from 'hast'
-import type {SyntaxHighlighterProps} from 'react-syntax-highlighter'
 
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
