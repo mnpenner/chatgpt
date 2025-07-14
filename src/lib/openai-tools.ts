@@ -54,25 +54,21 @@ function formatExecutionError(err: any, toolName: string) {
         errorDetail = {
             name: 'GeolocationPositionError',
             code: err.code,
-            // Use the standard message for the code, falling back to the potentially empty message from the object
             message: getGeolocationErrorMessage(err.code) + (err.message ? ` (${err.message})` : '')
         };
     } else if (err instanceof Error) {
-        // For standard Error objects
         errorDetail = {
             name: err.name,
             message: err.message,
-            stack: err.stack, // Optionally include stack for better debugging
+            stack: err.stack,
         };
     } else if (typeof err === 'object' && err !== null) {
-        // Fallback for other objects, attempt to stringify
         try {
             errorDetail = JSON.parse(JSON.stringify(err));
         } catch (e) {
             errorDetail = String(err);
         }
     } else {
-        // For primitives or null/undefined
         errorDetail = err ? String(err) : "Unknown";
     }
 
@@ -83,10 +79,25 @@ function formatExecutionError(err: any, toolName: string) {
     }
 }
 
+/**
+ * Defines a tool with a Zod schema for parameters and a strongly-typed execution function.
+ * @param tool The tool definition.
+ * @returns A ToolWithFunc object.
+ */
+function defineTool<P extends ZodSchema>(
+    tool: {
+        desc: string,
+        params: P,
+        exec: (params: z.infer<P>) => any
+    }
+): ToolWithFunc {
+    return tool;
+}
 
 const tools: Record<string, ToolWithFunc> = {
-    get_datetime: {
+    get_datetime: defineTool({
         desc: "Get the current date & time in the user's local timezone",
+        params: z.object({}),
         exec: () => {
             const formatter = new Intl.DateTimeFormat(undefined, {
                 dateStyle: 'full',
@@ -94,22 +105,23 @@ const tools: Record<string, ToolWithFunc> = {
             })
             return formatter.format(new Date())
         },
-        params: z.object({})
-    },
-    get_position: {
+    }),
+    get_position: defineTool({
         desc: "Get the geo location (latitude and longitude) of the user",
+        params: z.object({}),
         exec: async () => {
             const pos = await getCurrentPosition()
-            const age = Date.now() - pos.timestamp
             return {
                 latitude: pos.coords.latitude,
                 longitude: pos.coords.longitude,
             }
         },
-        params: z.object({})
-    },
-    eval_js: {
+    }),
+    eval_js: defineTool({
         desc: "Evaluates JavaScript code represented as a string and returns its completion value. The source is parsed as a script.",
+        params: z.object({
+            script: z.string().describe("A string representing a JavaScript expression, statement, or sequence of statements. The expression can include variables and properties of existing objects. It will be parsed as a script, so import declarations (which can only exist in modules) are not allowed."),
+        }),
         exec: ({ script }) => {
             return new Promise((resolve, reject) => {
                 const workerScript = URL.createObjectURL(new Blob([`
@@ -131,11 +143,8 @@ const tools: Record<string, ToolWithFunc> = {
                 worker.postMessage(script)
             })
         },
-        params: z.object({
-            script: z.string().describe("A string representing a JavaScript expression, statement, or sequence of statements. The expression can include variables and properties of existing objects. It will be parsed as a script, so import declarations (which can only exist in modules) are not allowed."),
-        })
-    },
-    google_maps_directions: {
+    }),
+    google_maps_directions: defineTool({
         desc: "Return a URL to Google Maps for travel directions. Google knows the user's current location.",
         params: z.object({
             waypoints: z.array(z.string()).min(2).describe("List of waypoints. Must contain an origin and destination at a minimum. Origin can be an empty string to mean travel from current location."),
@@ -149,14 +158,14 @@ const tools: Record<string, ToolWithFunc> = {
         exec: ({ waypoints, travelmode }) => {
             return { directionsUrl: getGoogleMapsDirectionsUrl(waypoints, travelmode) }
         }
-    },
-    static_google_map: {
+    }),
+    static_google_map: defineTool({
         desc: "Get a URL static Google Map image. An API key will automatically be appended to the URL and should not be removed.",
         params: z.object({
             center: z.string().describe("Defines the center of the map, equidistant from all edges of the map. This parameter takes a location as either a comma-separated {latitude,longitude} pair (e.g. \"40.714728,-73.998672\") or a string address (e.g. \"city hall, new york, ny\") identifying a unique location on the face of the earth."),
             size: z.string().default("600x600").describe("Defines the rectangular dimensions of the map image. This parameter takes a string of the form {horizontal_value}x{vertical_value}. For example, 500x400 defines a map 500 pixels wide by 400 pixels high."),
         }),
-        exec: params => {
+        exec: (params) => {
             return {
                 imageUrl: appendQueryParams('https://maps.googleapis.com/maps/api/staticmap', {
                     ...params,
@@ -164,8 +173,8 @@ const tools: Record<string, ToolWithFunc> = {
                 })
             }
         }
-    },
-    robohash: {
+    }),
+    robohash: defineTool({
         desc: "Generate a robot avatar image",
         params: z.object({
             key: z.string().describe("Any short unique string"),
@@ -177,7 +186,7 @@ const tools: Record<string, ToolWithFunc> = {
                 imageUrl: appendQueryParams(`https://robohash.org/${encodeParam(key)}`, { set, size })
             }
         }
-    }
+    })
 }
 
 export const openaiTools: OpenAI.Chat.Completions.ChatCompletionTool[] = Array.from(Object.entries(tools), ([key, val]) => ({
