@@ -254,7 +254,7 @@ async function getGoogGenAi() {
 }
 
 async function sendMessageWithFunctions(model: string, message: string) {
-    const openai = getOpenAiSync()
+    const openai = await getOpenAi()
 
     const newUserMessage: LegacyMessage = {
         role: 'user',

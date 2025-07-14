@@ -26,12 +26,54 @@ export const OPENAI_MODEL_ALIASES: Record<OpenAiModelId,OpenAiModelId> = {
     'gpt-4-turbo-preview': 'gpt-4-0125-preview',
     'gpt-4-32k': 'gpt-4-32k-0613',
     'gpt-4': 'gpt-4-0613',
+    'gpt-4o': 'gpt-4o-2024-05-13',
     'gpt-3.5-turbo': 'gpt-3.5-turbo-0613',
     'gpt-3.5-turbo-16k': 'gpt-3.5-turbo-16k-0613',
 }
 
 const OPENAI_PRICE_TABLE = (() => {
     const table: Record<OpenAiModelId,Partial<OpenAiModelInfo>> = {
+        'gpt-4.1-nano': {
+            input: 0.0001,
+            output: 0.0004,
+            contextWindow: 1_000_000,
+            supportsFunctions: true,
+        },
+        'gpt-4.1-mini': {
+            input: 0.0004,
+            contextWindow: 1_000_000,
+            supportsFunctions: true,
+        },
+        'gpt-4.1': {
+            input: 0.002,
+            output: 0.008,
+            contextWindow: 1_000_000,
+            supportsFunctions: true,
+        },
+        'gpt-4o-mini': {
+            input: 0.00015,
+            output: 0.0006,
+            contextWindow: 128_000,
+            supportsFunctions: true,
+        },
+        'o1-mini': {
+            input: 0.003,
+            output: 0.012,
+            contextWindow: 128_000,
+            supportsFunctions: true,
+        },
+        'gpt-4o-2024-05-13': {
+            input: 0.0025,
+            output: 0.01,
+            contextWindow: 128_000,
+            supportsFunctions: true,
+        },
+        'o1-preview': {
+            input: 0.015,
+            output: 0.06,
+            contextWindow: 128_000,
+            supportsFunctions: true,
+        },
         'gpt-4-0125-preview' : {
             input: 0.01,
             output: 0.03,
@@ -42,26 +84,31 @@ const OPENAI_PRICE_TABLE = (() => {
             input: 0.01,
             output: 0.03,
             contextWindow: 128_000,
+            supportsFunctions: true,
         },
         'gpt-4-1106-vision-preview' : {
             input: 0.01,
             output: 0.03,
             contextWindow: 128_000,
+            supportsFunctions: true,
         },
         'gpt-4-0613' : {
             input: 0.03,
             output: 0.06,
             contextWindow: 8_192,
+            supportsFunctions: true,
         },
         'gpt-4-32k-0613' : {
             input: 0.06,
             output: 0.12,
             contextWindow: 32_768,
+            legacy: true,
         },
         'gpt-3.5-turbo-1106' : {
             input: 0.0010,
             output: 0.0020,
             contextWindow: 16_385,
+            supportsFunctions: true,
         },
         'gpt-3.5-turbo-instruct' : {
             input: 0.0015,
@@ -140,7 +187,7 @@ export const MODEL_OPTIONS = (() => {
         const info = OPENAI_PRICE_TABLE[model]
         let name = model
         if(info.contextWindow != null) {
-            name += ` (${Math.round(info.contextWindow/1024)}k)`;
+            name += ` (${Math.round(info.contextWindow/1000)}k)`;
         }
         options.push({
             text: name,
