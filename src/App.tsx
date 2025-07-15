@@ -64,6 +64,7 @@ import {getOpenAi, getOpenAiSync} from './lib/openai.ts'
 import {queryClient} from './lib/query-client.ts'
 import {AssistantList, ThreadList} from './assistants.tsx'
 import {OaiThreadState} from './state/oai-thread-state.ts'
+import {nil} from './types/util-types.ts'
 
 
 const Page = withClass('div', css.page)
@@ -264,7 +265,7 @@ async function sendMessageWithFunctions(model: string, message: string) {
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
             role: 'system',
-            content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks. Write formulas, math equations and symbols using `remark-math` syntax. Large formulas should go on their own line, separated with $$ on either side; e.g.\n\n$$\nL = \\frac{1}{2} \\rho v^2 S C_L\n$$\n\nMath symbols should be written with a single $ on either side, e.g. $C_L$"
+            content: "Respond using GitHub Flavored Markdown (GFM) syntax but don't tell me about Markdown or GFM unless the user explicitly asks.\n\nWrite formulas, math equations and symbols using `remark-math` syntax. Large formulas should go on their own line, separated with $$ on either side; e.g.\n\n$$\nL = \\frac{1}{2} \\rho v^2 S C_L\n$$\n\nMath symbols should be written with a single $ on either side, e.g. $C_L$\n\nWhen a tool returns a URL, use it verbatim; do not remove any API keys."
         },
         newUserMessage,
     ]
@@ -578,6 +579,8 @@ function ChatContents() {
 }
 
 function formatPrice(value: number): string {
+    if(value === 0) return 'Free'
+
     const formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -747,7 +750,8 @@ function SideBarContents() {
     )
 }
 
-function Price({value}: { value: number }) {
+function Price({value}: { value: number|nil }) {
+    if(value == null) return <data>unknown</data>
     return <data value={fullWide(value)}>{formatPrice(value)}</data>
 }
 
